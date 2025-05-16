@@ -5,13 +5,15 @@ import {
 	CreateDateColumn,
 	UpdateDateColumn,
 	ManyToOne,
-	JoinColumn
+	JoinColumn,
+	Unique
 } from 'typeorm';
 import { AbstractEntity } from '../../abstract/base.entity';
 import { Cart } from './cart.entity';
-import { Item } from '../menu/item.entity';
+import { MenuItem } from '../menu/menu-item.entity';
 
 @Entity()
+@Unique(['cartId', 'menuItemId'])
 export class CartItem extends AbstractEntity {
 	@PrimaryGeneratedColumn()
 	cartItemId!: number;
@@ -19,16 +21,8 @@ export class CartItem extends AbstractEntity {
 	@Column()
 	cartId!: number;
 
-	@ManyToOne(() => Cart)
-	@JoinColumn({ name: 'cart_id' })
-	cart!: Cart;
-
 	@Column()
-	itemId!: number;
-
-	@ManyToOne(() => Item)
-	@JoinColumn({ name: 'item_id' })
-	item!: Item;
+	menuItemId!: number;
 
 	@Column()
 	quantity!: number;
@@ -47,4 +41,12 @@ export class CartItem extends AbstractEntity {
 
 	@UpdateDateColumn()
 	updatedAt!: Date;
+
+	@ManyToOne(() => Cart, (cart) => cart.items)
+	@JoinColumn({ name: 'cart_id' })
+	cart!: Cart;
+
+	@ManyToOne(() => MenuItem)
+	@JoinColumn({ name: 'menu_item_id' })
+	menuItem!: MenuItem;
 }

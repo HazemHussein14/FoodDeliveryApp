@@ -29,7 +29,7 @@ export class Address extends AbstractEntity {
 	@Column({ type: 'text' })
 	addressLine2!: string;
 
-	@Column()
+	@Column({ type: 'varchar', length: 255 })
 	city!: string;
 
 	@CreateDateColumn()

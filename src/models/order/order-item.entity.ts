@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { AbstractEntity } from '../../abstract/base.entity';
 import { Order } from './order.entity';
-import { Item } from '../menu/item.entity';
+import { MenuItem } from '../menu/menu-item.entity';
 
 @Entity()
 export class OrderItem extends AbstractEntity {
@@ -11,16 +11,16 @@ export class OrderItem extends AbstractEntity {
 	@Column()
 	orderId!: number;
 
-	@ManyToOne(() => Order)
+	@ManyToOne(() => Order, (order) => order.items)
 	@JoinColumn({ name: 'order_id' })
 	order!: Order;
 
 	@Column()
-	itemId!: number;
+	menuItemId!: number;
 
-	@ManyToOne(() => Item)
-	@JoinColumn({ name: 'item_id' })
-	item!: Item;
+	@ManyToOne(() => MenuItem)
+	@JoinColumn({ name: 'menu_item_id' })
+	menuItem!: MenuItem;
 
 	@Column()
 	quantity!: number;
