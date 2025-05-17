@@ -3,9 +3,7 @@ import {
 	PrimaryGeneratedColumn,
 	Column,
 	CreateDateColumn,
-	UpdateDateColumn,
-	ManyToOne,
-	JoinColumn
+	UpdateDateColumn
 } from 'typeorm';
 import { AbstractEntity } from '../../abstract/base.entity';
 
