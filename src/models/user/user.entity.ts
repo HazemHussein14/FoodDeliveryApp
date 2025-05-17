@@ -25,7 +25,7 @@ export class User extends AbstractEntity {
 	@Column({ type: 'varchar', length: 100, unique: true })
 	email!: string;
 
-	@Column({ type: 'varchar', length: 20 })
+	@Column({ type: 'varchar', length: 30 })
 	phone!: string;
 
 	@Column({ type: 'varchar', length: 250 })
@@ -44,7 +44,7 @@ export class User extends AbstractEntity {
 	updatedAt!: Date;
 
 	@ManyToOne(() => UserType, (userType) => userType.users)
-	@JoinColumn({ name: 'userTypeId' })
+	@JoinColumn({ name: 'user_type_id' })
 	userType!: UserType;
 
 	@OneToMany(() => UserRole, (userRole) => userRole.user)
