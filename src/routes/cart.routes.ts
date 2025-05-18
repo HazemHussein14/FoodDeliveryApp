@@ -7,6 +7,6 @@ const CartRouter = Router();
 const controller = new CartController();
 
 CartRouter.get('/view/:customerId', controller.viewCart.bind(controller));
-CartRouter.patch('/update/:cartId', controller.updateCart.bind(controller));
+CartRouter.post('/create', controller.createCart.bind(controller));
 
 export default CartRouter;
