@@ -6,5 +6,7 @@ import { createCartBodySchema } from '../validators/cart.validator';
 const CartRouter = Router();
 const controller = new CartController();
 
+CartRouter.get('/view/:customerId', controller.viewCart.bind(controller));
+CartRouter.patch('/update/:cartId', controller.updateCart.bind(controller));
 
 export default CartRouter;
