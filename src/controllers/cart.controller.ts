@@ -6,7 +6,7 @@ import { CartService } from '../services/cart.service';
 export class CartController {
 	private cartService = new CartService();
 
-	async createCart(req: Request, res: Response) {
+	async addCart(req: Request, res: Response) {
 		try {
 			const cart = await this.cartService.createCart(req.body);
 			sendResponse(res, HttpStatusCodes.CREATED, 'Cart created successfully', cart);
