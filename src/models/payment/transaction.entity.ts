@@ -5,15 +5,13 @@ import {
 	CreateDateColumn,
 	UpdateDateColumn,
 	ManyToOne,
-	JoinColumn,
-	OneToMany
+	JoinColumn
 } from 'typeorm';
 import { AbstractEntity } from '../../abstract/base.entity';
 import { Customer } from '../customer/customer.entity';
 import { PaymentMethod } from './payment-method.entity';
 import { Order } from '../order/order.entity';
 import { PaymentStatus } from './payment-status.entity';
-import { TransactionDetail } from './transaction-detail.entity';
 
 @Entity()
 export class Transaction extends AbstractEntity {
@@ -30,7 +28,7 @@ export class Transaction extends AbstractEntity {
 	@Column()
 	paymentMethodId!: number;
 
-	@ManyToOne(() => PaymentMethod, (paymentMethod) => paymentMethod.transactions)
+	@ManyToOne(() => PaymentMethod)
 	@JoinColumn({ name: 'payment_method_id' })
 	paymentMethod!: PaymentMethod;
 
@@ -47,11 +45,11 @@ export class Transaction extends AbstractEntity {
 	@Column()
 	paymentStatusId!: number;
 
-	@ManyToOne(() => PaymentStatus, (paymentStatus) => paymentStatus.transactions)
+	@ManyToOne(() => PaymentStatus)
 	@JoinColumn({ name: 'payment_status_id' })
 	paymentStatus!: PaymentStatus;
 
-	@Column({ type: 'varchar', length: 100 })
+	@Column({ length: 100 })
 	transactionCode!: string;
 
 	@CreateDateColumn()
@@ -59,7 +57,4 @@ export class Transaction extends AbstractEntity {
 
 	@UpdateDateColumn()
 	updatedAt!: Date;
-
-	@OneToMany(() => TransactionDetail, (detail) => detail.transaction)
-	details!: TransactionDetail[];
 }

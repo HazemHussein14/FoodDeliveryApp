@@ -5,13 +5,10 @@ import {
 	CreateDateColumn,
 	UpdateDateColumn,
 	OneToOne,
-	JoinColumn,
-	OneToMany
+	JoinColumn
 } from 'typeorm';
 import { User } from '../user/user.entity';
 import { AbstractEntity } from '../../abstract/base.entity';
-import { RestaurantMenu } from './restaurant-menu.entity';
-import { Branch } from './branch.entity';
 
 // Restaurant entity
 @Entity()
@@ -22,25 +19,32 @@ export class Restaurant extends AbstractEntity {
 	@Column({ unique: true })
 	userId!: number;
 
-	@Column({ type: 'varchar', length: 255 })
+	@OneToOne(() => User)
+	@JoinColumn({ name: 'user_id' })
+	user!: User;
+
+	@Column()
 	name!: string;
 
-	@Column({ type: 'varchar', length: 512, default: '' })
+	@Column({ default: '' })
 	logoUrl!: string;
 
-	@Column({ type: 'varchar', length: 512, default: '' })
+	@Column({ default: '' })
 	bannerUrl!: string;
 
-	@Column({ type: 'jsonb' })
-	location!: Record<string, any>;
+	@Column({ type: 'jsonb', nullable: true })
+	location?: any;
 
-	@Column({ type: 'varchar', length: 6 })
+	@Column({
+		type: 'enum',
+		enum: ['open', 'busy', 'pause', 'closed']
+	})
 	status!: 'open' | 'busy' | 'pause' | 'closed';
 
-	@Column({ type: 'varchar', length: 20, unique: true })
+	@Column({ unique: true })
 	commercialRegistrationNumber!: string;
 
-	@Column({ type: 'varchar', length: 15, unique: true })
+	@Column({ unique: true })
 	vatNumber!: string;
 
 	@Column({ default: true })
@@ -51,14 +55,4 @@ export class Restaurant extends AbstractEntity {
 
 	@UpdateDateColumn()
 	updatedAt!: Date;
-
-	@OneToOne(() => User)
-	@JoinColumn({ name: 'user_id' })
-	user!: User;
-
-	@OneToMany(() => RestaurantMenu, (restaurantMenu) => restaurantMenu.restaurant)
-	menus!: RestaurantMenu[];
-
-	@OneToMany(() => Branch, (branch) => branch.restaurant)
-	branches!: Branch[];
 }

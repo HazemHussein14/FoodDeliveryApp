@@ -51,16 +51,13 @@ export class OrderRepository {
 		cancelledBy: 'customer' | 'restaurant' | 'system' | 'driver',
 		reason: string
 	): Promise<Order | null> {
-		const order = await this.getOrderById(orderId);
-		if (!order) return null;
-
-		order.cancellationInfo = {
+		const data = {
 			cancelledBy,
-			reason,
+			cancellationReason: reason,
 			cancelledAt: new Date()
 		};
-
-		return await this.orderRepo.save(order);
+		await this.orderRepo.update(orderId, data);
+		return await this.getOrderById(orderId);
 	}
 
 	// Order Item operations

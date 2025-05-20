@@ -5,13 +5,11 @@ import {
 	CreateDateColumn,
 	UpdateDateColumn,
 	ManyToOne,
-	JoinColumn,
-	OneToMany
+	JoinColumn
 } from 'typeorm';
 import { AbstractEntity } from '../../abstract/base.entity';
 import { Customer } from '../customer/customer.entity';
 import { Restaurant } from '../restaurant/restaurant.entity';
-import { CartItem } from './cart-item.entity';
 
 @Entity()
 export class Cart extends AbstractEntity {
@@ -35,15 +33,9 @@ export class Cart extends AbstractEntity {
 	@Column({ default: 0 })
 	totalItems!: number;
 
-	@Column({ default: true })
-	isActive!: boolean;
-
 	@CreateDateColumn()
 	createdAt!: Date;
 
 	@UpdateDateColumn()
 	updatedAt!: Date;
-
-	@OneToMany(() => CartItem, (cartItem) => cartItem.cart)
-	items!: CartItem[];
 }

@@ -1,11 +1,11 @@
 import {
-	Column,
 	Entity,
 	PrimaryGeneratedColumn,
-	ManyToOne,
-	JoinColumn,
+	Column,
 	CreateDateColumn,
-	UpdateDateColumn
+	UpdateDateColumn,
+	ManyToOne,
+	JoinColumn
 } from 'typeorm';
 import { AbstractEntity } from '../../abstract/base.entity';
 import { PaymentMethod } from './payment-method.entity';
@@ -18,8 +18,15 @@ export class PaymentMethodConfig extends AbstractEntity {
 	@Column()
 	paymentMethodId!: number;
 
+	@ManyToOne(() => PaymentMethod)
+	@JoinColumn({ name: 'payment_method_Id' })
+	paymentMethod!: PaymentMethod;
+
 	@Column({ type: 'jsonb' })
-	gatewayConfig!: Record<string, any>;
+	configKey!: any;
+
+	@Column({ type: 'jsonb' })
+	configValue!: any;
 
 	@Column({ default: true })
 	isActive!: boolean;
@@ -29,8 +36,4 @@ export class PaymentMethodConfig extends AbstractEntity {
 
 	@UpdateDateColumn()
 	updatedAt!: Date;
-
-	@ManyToOne(() => PaymentMethod)
-	@JoinColumn({ name: 'payment_method_id' })
-	paymentMethod!: PaymentMethod;
 }

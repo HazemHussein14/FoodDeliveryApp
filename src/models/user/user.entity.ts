@@ -5,51 +5,43 @@ import {
 	CreateDateColumn,
 	UpdateDateColumn,
 	ManyToOne,
-	JoinColumn,
-	OneToMany,
-	OneToOne
+	JoinColumn
 } from 'typeorm';
 import { AbstractEntity } from '../../abstract/base.entity';
 import { UserType } from './user-type.entity';
-import { UserRole } from './user-role.entity';
-import { Restaurant } from '../restaurant/restaurant.entity';
 
-@Entity()
+@Entity('users')
 export class User extends AbstractEntity {
 	@PrimaryGeneratedColumn()
 	userId!: number;
 
-	@Column({ type: 'varchar', length: 100 })
+	@Column()
 	name!: string;
 
-	@Column({ type: 'varchar', length: 100, unique: true })
+	@Column({ unique: true })
 	email!: string;
 
-	@Column({ type: 'varchar', length: 30 })
-	phone!: string;
-
-	@Column({ type: 'varchar', length: 250 })
-	password!: string;
-
-	@Column({ type: 'boolean', default: true })
-	isActive!: boolean;
+	@Column({ nullable: true, unique: true })
+	phone?: string;
 
 	@Column()
-	userTypeId!: number;
+	password!: string;
+
+	@Column({ default: true })
+	isActive!: boolean;
+
+	@Column({ nullable: true })
+	userTypeId?: number;
+
+	@ManyToOne(() => UserType)
+	@JoinColumn({
+		name: 'user_type_id'
+	})
+	userType?: UserType;
 
 	@CreateDateColumn()
 	createdAt!: Date;
 
 	@UpdateDateColumn()
 	updatedAt!: Date;
-
-	@ManyToOne(() => UserType, (userType) => userType.users)
-	@JoinColumn({ name: 'user_type_id' })
-	userType!: UserType;
-
-	@OneToMany(() => UserRole, (userRole) => userRole.user)
-	userRoles!: UserRole[];
-
-	@OneToOne(() => Restaurant, (restaurant) => restaurant.user)
-	restaurant!: Restaurant;
 }

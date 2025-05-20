@@ -15,10 +15,10 @@ export class TransactionDetail extends AbstractEntity {
 	transaction!: Transaction;
 
 	@Column({ type: 'jsonb' })
-	detailKey!: Record<string, any>;
+	detailKey!: any;
 
 	@Column({ type: 'jsonb' })
-	detailValue!: Record<string, any>;
+	detailValue!: any;
 
 	@CreateDateColumn()
 	createdAt!: Date;

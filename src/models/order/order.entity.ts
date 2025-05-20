@@ -5,8 +5,7 @@ import {
 	CreateDateColumn,
 	UpdateDateColumn,
 	ManyToOne,
-	JoinColumn,
-	OneToMany
+	JoinColumn
 } from 'typeorm';
 import { AbstractEntity } from '../../abstract/base.entity';
 import { OrderStatus } from './order-status.entity';
@@ -14,7 +13,6 @@ import { Branch } from '../restaurant/branch.entity';
 import { Cart } from '../cart/cart.entity';
 import { Customer } from '../customer/customer.entity';
 import { Address } from '../customer/address.entity';
-import { OrderItem } from './order-item.entity';
 
 @Entity()
 export class Order extends AbstractEntity {
@@ -77,21 +75,28 @@ export class Order extends AbstractEntity {
 	@Column({ type: 'decimal', precision: 10, scale: 2 })
 	totalAmount!: number;
 
-	@Column({ type: 'timestamp' })
+	@Column()
 	placedAt!: Date;
 
-	@Column({ type: 'timestamp' })
+	@Column()
 	deliveredAt!: Date;
 
-	@Column({ type: 'jsonb' })
-	cancellationInfo!: Record<string, any>;
+	@Column({
+		type: 'enum',
+		enum: ['customer', 'restaurant', 'system', 'driver'],
+		nullable: true
+	})
+	cancelledBy?: 'customer' | 'restaurant' | 'system' | 'driver';
+
+	@Column({ type: 'text', default: '' })
+	cancellationReason!: string;
+
+	@Column({ nullable: true })
+	cancelledAt?: Date;
 
 	@CreateDateColumn()
 	createdAt!: Date;
 
 	@UpdateDateColumn()
 	updatedAt!: Date;
-
-	@OneToMany(() => OrderItem, (orderItem) => orderItem.order)
-	items!: OrderItem[];
 }
