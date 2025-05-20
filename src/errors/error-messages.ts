@@ -53,7 +53,8 @@ const ErrMessages = {
 		CartNotFound: 'Cart Not Found',
 		CartAlreadyExists: 'Cart Already Exists',
 		CartItemNotFound: 'Cart Item Not Found',
-		CartItemAlreadyExists: 'Cart Item Already Exists'
+		CartItemAlreadyExists: 'Cart Item Already Exists',
+		CartNotActive: 'Cart Is Not Active'
 	}
 };
 

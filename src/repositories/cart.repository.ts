@@ -21,14 +21,12 @@ export class CartRepository {
 	async getCartById(cartId: number): Promise<Cart | null> {
 		return await this.cartRepo.findOne({
 			where: { cartId },
-			relations: ['customer', 'restaurant']
 		});
 	}
 
 	async getCartByCustomerId(customerId: number): Promise<Cart | null> {
 		return await this.cartRepo.findOne({
 			where: { customerId },
-			relations: ['customer', 'restaurant']
 		});
 	}
 
@@ -50,14 +48,12 @@ export class CartRepository {
 	async getCartItems(cartId: number): Promise<CartItem[]> {
 		return await this.cartItemRepo.find({
 			where: { cartId },
-			relations: ['item']
 		});
 	}
 
 	async getCartItem(cartItemId: number): Promise<CartItem | null> {
 		return await this.cartItemRepo.findOne({
 			where: { cartItemId },
-			relations: ['item']
 		});
 	}
 

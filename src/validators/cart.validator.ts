@@ -1,5 +1,13 @@
 import Joi from 'joi';
 
-export const createCartBodySchema = Joi.object({
-    
+export const createCartBodySchema = Joi.object({}).required();
+
+export const removeItemSchema = Joi.object({
+	cartItemId: Joi.number().integer().positive().required().messages({
+		'number.base': 'Cart item ID must be a valid number',
+		'number.integer': 'Cart item ID must be an integer',
+		'number.positive': 'Cart item ID must be positive',
+		'any.required': 'Cart item ID is required'
+	})
 }).required();
+
