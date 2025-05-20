@@ -5,13 +5,15 @@ import {
 	CreateDateColumn,
 	UpdateDateColumn,
 	ManyToOne,
-	JoinColumn
+	JoinColumn,
+	Unique
 } from 'typeorm';
 import { AbstractEntity } from '../../abstract/base.entity';
 import { User } from './user.entity';
 import { Role } from './role.entity';
 
 @Entity()
+@Unique(['userId', 'roleId'])
 export class UserRole extends AbstractEntity {
 	@PrimaryGeneratedColumn()
 	userRoleId!: number;
@@ -19,14 +21,14 @@ export class UserRole extends AbstractEntity {
 	@Column()
 	userId!: number;
 
-	@ManyToOne(() => User)
+	@ManyToOne(() => User, (user) => user.userRoles)
 	@JoinColumn({ name: 'user_id' })
 	user!: User;
 
 	@Column()
 	roleId!: number;
 
-	@ManyToOne(() => Role)
+	@ManyToOne(() => Role, (role) => role.userRoles)
 	@JoinColumn({ name: 'role_id' })
 	role!: Role;
 

@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Order } from './order.entity';
 import { AbstractEntity } from '../../abstract/base.entity';
 
 @Entity()
@@ -6,7 +7,7 @@ export class OrderStatus extends AbstractEntity {
 	@PrimaryGeneratedColumn()
 	orderStatusId!: number;
 
-	@Column({ length: 100 })
+	@Column({ type: 'varchar', length: 100 })
 	statusName!: string;
 
 	@CreateDateColumn()
@@ -14,4 +15,7 @@ export class OrderStatus extends AbstractEntity {
 
 	@UpdateDateColumn()
 	updatedAt!: Date;
+
+	@OneToMany(() => Order, (order) => order.orderStatus)
+	orders!: Order[];
 }

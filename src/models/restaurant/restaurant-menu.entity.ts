@@ -5,13 +5,15 @@ import {
 	CreateDateColumn,
 	UpdateDateColumn,
 	ManyToOne,
-	JoinColumn
+	JoinColumn,
+	Unique
 } from 'typeorm';
 import { AbstractEntity } from '../../abstract/base.entity';
 import { Restaurant } from './restaurant.entity';
 import { Menu } from '../menu/menu.entity';
 
 @Entity()
+@Unique(['restaurantId', 'menuId'])
 export class RestaurantMenu extends AbstractEntity {
 	@PrimaryGeneratedColumn()
 	restaurantMenuId!: number;
@@ -19,16 +21,8 @@ export class RestaurantMenu extends AbstractEntity {
 	@Column()
 	restaurantId!: number;
 
-	@ManyToOne(() => Restaurant)
-	@JoinColumn({ name: 'restaurant_id' })
-	restaurant!: Restaurant;
-
 	@Column()
 	menuId!: number;
-
-	@ManyToOne(() => Menu)
-	@JoinColumn({ name: 'menu_id' })
-	menu!: Menu;
 
 	@Column({ default: 0 })
 	displayOrder!: number;
@@ -38,4 +32,12 @@ export class RestaurantMenu extends AbstractEntity {
 
 	@UpdateDateColumn()
 	updatedAt!: Date;
+
+	@ManyToOne(() => Restaurant, (restaurant) => restaurant.menus)
+	@JoinColumn({ name: 'restaurant_id' })
+	restaurant!: Restaurant;
+
+	@ManyToOne(() => Menu)
+	@JoinColumn({ name: 'menu_id' })
+	menu!: Menu;
 }

@@ -1,15 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { AbstractEntity } from '../../abstract/base.entity';
+import { MenuItem } from './menu-item.entity';
 
 @Entity()
 export class Item extends AbstractEntity {
 	@PrimaryGeneratedColumn()
 	itemId!: number;
 
-	@Column({ default: '' })
+	@Column({ type: 'varchar', length: 512, default: '' })
 	imagePath!: string;
 
-	@Column({ length: 100 })
+	@Column({ type: 'varchar', length: 100 })
 	name!: string;
 
 	@Column({ type: 'text', default: '' })
@@ -32,4 +33,7 @@ export class Item extends AbstractEntity {
 
 	@UpdateDateColumn()
 	updatedAt!: Date;
+
+	@OneToMany(() => MenuItem, (menuItem) => menuItem.item)
+	menuItems!: MenuItem[];
 }
