@@ -7,7 +7,7 @@ import {
 	OneToOne,
 	JoinColumn
 } from 'typeorm';
-import { AbstractEntity } from '../../abstract/base.entity';
+import { AbstractEntity } from '../base.entity';
 import { User } from '../user/user.entity';
 
 @Entity()

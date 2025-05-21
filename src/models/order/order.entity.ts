@@ -8,13 +8,13 @@ import {
 	JoinColumn,
 	OneToMany
 } from 'typeorm';
-import { AbstractEntity } from '../../abstract/base.entity';
+import { AbstractEntity } from '../base.entity';
 import { OrderStatus } from './order-status.entity';
-import { Branch } from '../restaurant/branch.entity';
 import { Cart } from '../cart/cart.entity';
 import { Customer } from '../customer/customer.entity';
 import { Address } from '../customer/address.entity';
 import { OrderItem } from './order-item.entity';
+import { Restaurant } from '../restaurant/restaurant.entity';
 
 @Entity()
 export class Order extends AbstractEntity {
@@ -29,11 +29,11 @@ export class Order extends AbstractEntity {
 	orderStatus!: OrderStatus;
 
 	@Column()
-	branchId!: number;
+	restaurantId!: number;
 
-	@ManyToOne(() => Branch)
-	@JoinColumn({ name: 'branch_id' })
-	branch!: Branch;
+	@ManyToOne(() => Restaurant, (restaurant) => restaurant.orders)
+	@JoinColumn({ name: 'restaurant_id' })
+	restaurant!: Restaurant;
 
 	@Column()
 	cartId!: number;
