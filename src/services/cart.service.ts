@@ -86,4 +86,30 @@ export class CartService {
 			await transactionalEntityManager.update(Cart, cart.cartId, { totalItems: 0 });
 		});
 	}
+
+	async updateCartQuantities(cartId: number, cartItemId: number, quantity: number)
+	{
+		logger.info('updating item qunatity', { cartId, cartItemId, quantity });
+
+		await AppDataSource.transaction(async (transactionalEntityManager) => {
+			const cart = await transactionalEntityManager.findOne(Cart, {
+				where: { cartId },
+				relations: ['items']
+			});
+
+			if (!cart) {
+				throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
+			}
+
+			if (!cart.isActive) {
+				throw new ApplicationError(ErrMessages.cart.CartNotActive, StatusCodes.BAD_REQUEST);
+			}
+
+			const item = cart.items.find(item => item.cartItemId === cartItemId);
+			if(!item)
+				throw new ApplicationError(ErrMessages.cart.CartItemNotFound, StatusCodes.NOT_FOUND);
+
+			await transactionalEntityManager.update(CartItem, cartItemId, { quantity });
+		});
+	}
 }
