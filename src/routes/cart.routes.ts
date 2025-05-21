@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { CartController } from '../controllers';
 import { validateRequest } from '../middlewares/validate-request.middleware';
-import { createCartBodySchema, removeItemSchema } from '../validators/cart.validator';
+import { createCartBodySchema, removeItemSchema, clearCartSchema } from '../validators/cart.validator';
 
 const CartRouter = Router();
 const controller = new CartController();
@@ -49,6 +49,12 @@ CartRouter.delete(
 	'/item/:cartItemId',
 	validateRequest({ params: removeItemSchema }),
 	controller.removeItem.bind(controller)
+);
+
+CartRouter.delete(
+	'/:cartId',
+	validateRequest({ params: clearCartSchema }),
+	controller.clearCart.bind(controller)
 );
 
 export default CartRouter;

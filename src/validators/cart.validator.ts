@@ -11,3 +11,6 @@ export const removeItemSchema = Joi.object({
 	})
 }).required();
 
+export const clearCartSchema = Joi.object({
+	cartId: Joi.number().integer().positive().required()
+});
