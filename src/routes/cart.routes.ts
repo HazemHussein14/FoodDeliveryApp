@@ -6,6 +6,8 @@ import { createCartBodySchema, removeItemSchema } from '../validators/cart.valid
 const CartRouter = Router();
 const controller = new CartController();
 
+CartRouter.get('/view/:customerId', controller.viewCart.bind(controller));
+CartRouter.post('/add', controller.addCart.bind(controller));
 /**
  * @swagger
  * tags:

@@ -4,9 +4,23 @@ import ErrMessages from '../errors/error-messages';
 import { AppDataSource } from '../config/data-source';
 import { Cart, CartItem } from '../models';
 import logger from '../config/logger';
+import { CartRepository } from '../repositories/cart.repository';
 
 export class CartService {
-	async removeItem(cartItemId: number) {
+	private cartRepo = new CartRepository();
+
+	async createCart(data: any) {
+		const cart = await this.cartRepo.createCart(data);
+		return cart;
+	}
+
+	async viewCart(customerId: number) {
+		const cart = await this.cartRepo.getCartByCustomerId(customerId);
+		if (!cart) throw new Error('Cart not found');
+		return cart;
+	}
+
+  async removeItem(cartItemId: number) {
 		logger.info(`Starting removal of cart item`, { cartItemId });
 
 		return await AppDataSource.transaction(async (transactionalEntityManager) => {
