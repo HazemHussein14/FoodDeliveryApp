@@ -20,7 +20,7 @@ export class CartService {
 		return cart;
 	}
 
-  async removeItem(cartItemId: number) {
+	async removeItem(cartItemId: number) {
 		logger.info(`Starting removal of cart item`, { cartItemId });
 
 		return await AppDataSource.transaction(async (transactionalEntityManager) => {
@@ -65,7 +65,7 @@ export class CartService {
 		});
 	}
 
-  async clearCart(cartId: number) {
+	async clearCart(cartId: number) {
 		logger.info('clearing cart items', { cartId });
 
 		await AppDataSource.transaction(async (transactionalEntityManager) => {
@@ -87,8 +87,7 @@ export class CartService {
 		});
 	}
 
-	async updateCartQuantities(cartId: number, cartItemId: number, quantity: number)
-	{
+	async updateCartQuantities(cartId: number, cartItemId: number, quantity: number) {
 		logger.info('updating item qunatity', { cartId, cartItemId, quantity });
 
 		await AppDataSource.transaction(async (transactionalEntityManager) => {
@@ -105,9 +104,8 @@ export class CartService {
 				throw new ApplicationError(ErrMessages.cart.CartNotActive, StatusCodes.BAD_REQUEST);
 			}
 
-			const item = cart.items.find(item => item.cartItemId === cartItemId);
-			if(!item)
-				throw new ApplicationError(ErrMessages.cart.CartItemNotFound, StatusCodes.NOT_FOUND);
+			const item = cart.items.find((item) => item.cartItemId === cartItemId);
+			if (!item) throw new ApplicationError(ErrMessages.cart.CartItemNotFound, StatusCodes.NOT_FOUND);
 
 			await transactionalEntityManager.update(CartItem, cartItemId, { quantity });
 		});

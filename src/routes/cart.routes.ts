@@ -1,7 +1,13 @@
 import { Router } from 'express';
 import { CartController } from '../controllers';
 import { validateRequest } from '../middlewares/validate-request.middleware';
-import { createCartBodySchema, clearCartSchema, removeItemSchema, updateCartQuantitiesParamsSchema, updateCartQuantitiesBodySchema } from '../validators/cart.validator';
+import {
+	createCartBodySchema,
+	clearCartSchema,
+	removeItemSchema,
+	updateCartQuantitiesParamsSchema,
+	updateCartQuantitiesBodySchema
+} from '../validators/cart.validator';
 
 const CartRouter = Router();
 const controller = new CartController();
@@ -51,11 +57,7 @@ CartRouter.delete(
 	controller.removeItem.bind(controller)
 );
 
-CartRouter.delete(
-	'/:cartId',
-	validateRequest({ params: clearCartSchema }),
-	controller.clearCart.bind(controller)
-);
+CartRouter.delete('/:cartId', validateRequest({ params: clearCartSchema }), controller.clearCart.bind(controller));
 
 /**
  * @swagger
@@ -103,5 +105,5 @@ CartRouter.put(
 	'/:cartId/update-cart-quantities/:cartItemId',
 	validateRequest({ params: updateCartQuantitiesParamsSchema, body: updateCartQuantitiesBodySchema }),
 	controller.updateCartQuantities.bind(controller)
-)
+);
 export default CartRouter;

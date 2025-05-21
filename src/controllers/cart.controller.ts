@@ -43,6 +43,6 @@ export class CartController {
 		const { quantity } = req.validated?.body;
 
 		await this.cartService.updateCartQuantities(cartId, cartItemId, quantity);
-    sendResponse(res, StatusCodes.OK, 'Updated Cart Quantities');
+		sendResponse(res, StatusCodes.OK, 'Updated Cart Quantities');
 	}
 }

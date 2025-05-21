@@ -35,7 +35,7 @@ const cartSwaggerSchema = {
 				description: 'ID of the cart item to remove'
 			}
 		}
-	},
+	}
 };
 
 export default cartSwaggerSchema;
