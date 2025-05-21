@@ -1,25 +1,27 @@
 import Joi from 'joi';
 
+export const idSchema = Joi.number().integer().positive().required().messages({
+	'number.base': '{{#label}} must be a valid number',
+	'number.integer': '{{#label}} must be an integer',
+	'number.positive': '{{#label}} must be positive',
+	'any.required': '{{#label}} is required'
+});
+
 export const createCartBodySchema = Joi.object({}).required();
 
 export const removeItemSchema = Joi.object({
-	cartItemId: Joi.number().integer().positive().required().messages({
-		'number.base': 'Cart item ID must be a valid number',
-		'number.integer': 'Cart item ID must be an integer',
-		'number.positive': 'Cart item ID must be positive',
-		'any.required': 'Cart item ID is required'
-	})
+	cartItemId: idSchema.label('Cart item ID')
 }).required();
 
 export const clearCartSchema = Joi.object({
-	cartId: Joi.number().integer().positive().required()
+	cartId: idSchema.label('Cart ID')
 });
 
 export const updateCartQuantitiesParamsSchema = Joi.object({
-	cartId: Joi.number().integer().positive().required(),
-	cartItemId: Joi.number().integer().positive().required()
+	cartId: idSchema.label('Cart ID'),
+	cartItemId: idSchema.label('Cart item ID')
 });
 
 export const updateCartQuantitiesBodySchema = Joi.object({
-	quantity: Joi.number().integer().positive().required()
+	quantity: idSchema.label('Quantity')
 });
