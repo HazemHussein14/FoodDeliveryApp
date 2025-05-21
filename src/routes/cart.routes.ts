@@ -100,7 +100,7 @@ CartRouter.delete(
  *         description: Not Found - Cart or cart item not found
  */
 CartRouter.put(
-	'/:cardId/update-cart-quantities/:cartItemId',
+	'/:cartId/update-cart-quantities/:cartItemId',
 	validateRequest({ params: updateCartQuantitiesParamsSchema, body: updateCartQuantitiesBodySchema }),
 	controller.updateCartQuantities.bind(controller)
 )
