@@ -6,17 +6,26 @@ import { CartService } from '../services/cart.service';
 export class CartController {
 	private cartService = new CartService();
 
+	// TODO: Use validation middleware
+
 	async addCart(req: Request, res: Response) {
 		try {
 			const cart = await this.cartService.createCart(req.body);
 			sendResponse(res, StatusCodes.CREATED, 'Cart created successfully', cart);
 		} catch (error: any) {
+			// log the error
+			// Preserve the error's status code in the controller
+			// const statusCode = error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
+			// sendResponse(res, statusCode, error.message || 'Failed to process request');
 			sendResponse(res, StatusCodes.BAD_REQUEST, 'Failed to create cart', error.message);
 		}
 	}
 
 	async viewCart(req: Request, res: Response) {
 		try {
+			// TODO: Use validation middleware to validate customerId
+			// TODO: Use DTO for request and response, send the cart with its items
+			// TODO: Use Logger
 			const customerId = parseInt(req.params.customerId);
 			const cart = await this.cartService.viewCart(customerId);
 			sendResponse(res, StatusCodes.OK, 'Cart fetched successfully', cart);

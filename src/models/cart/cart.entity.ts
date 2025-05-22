@@ -33,7 +33,14 @@ export class Cart extends AbstractEntity {
 	@OneToMany(() => CartItem, (cartItem) => cartItem.cart)
 	cartItems!: CartItem[];
 
-	buildCart(customerId: number) {
-		this.customerId = customerId;
+	/**
+	 * Builder method to create a Cart instance with a customerId.
+	 * @param customerId - ID of the customer
+	 * @returns A new Cart instance
+	 */
+	static buildCart(customerId: number) {
+		const cart = new Cart();
+		cart.customerId = customerId;
+		return cart;
 	}
 }

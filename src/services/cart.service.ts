@@ -9,17 +9,27 @@ import { CartRepository } from '../repositories/cart.repository';
 export class CartService {
 	private cartRepo = new CartRepository();
 
+	// TODO: Use DTO instead of any - Implement DTOs for request/response data:
+	// Add validation
 	async createCart(data: any) {
 		const cart = await this.cartRepo.createCart(data);
 		return cart;
 	}
 
+	// TODO: Add to cart method
+
+	// Standardize on ApplicationError throughout the service:
+
 	async viewCart(customerId: number) {
 		const cart = await this.cartRepo.getCartByCustomerId(customerId);
+		// Replace this
 		if (!cart) throw new Error('Cart not found');
+		// With this
+		// if (!cart) throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
 		return cart;
 	}
 
+	// TODO: use decorators for Transactions
 	async removeItem(cartItemId: number) {
 		logger.info(`Starting removal of cart item`, { cartItemId });
 
@@ -42,25 +52,12 @@ export class CartService {
 
 			// TODO: validate that the customer owns the cart
 
-			if (!cart.isActive) {
-				throw new ApplicationError(ErrMessages.cart.CartNotActive, StatusCodes.BAD_REQUEST);
-			}
-
 			logger.info(`Deleting cart item`, { cartItemId });
 			await transactionalEntityManager.delete(CartItem, cartItemId);
 
-			const cartItems = await transactionalEntityManager.find(CartItem, {
-				where: { cartId: cart.cartId }
-			});
-
-			const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
-
-			await transactionalEntityManager.update(Cart, cart.cartId, { totalItems });
-
 			logger.info(`Successfully removed cart item and updated cart totals`, {
 				cartItemId,
-				cartId: cart.cartId,
-				newTotalItems: totalItems
+				cartId: cart.cartId
 			});
 		});
 	}
@@ -78,19 +75,16 @@ export class CartService {
 				throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
 			}
 
-			if (!cart.isActive) {
-				throw new ApplicationError(ErrMessages.cart.CartNotActive, StatusCodes.BAD_REQUEST);
-			}
-
-			await transactionalEntityManager.remove(cart.items);
-			await transactionalEntityManager.update(Cart, cart.cartId, { totalItems: 0 });
+			await transactionalEntityManager.remove(cart.cartItems);
 		});
 	}
 
+	// TODO: use decorators for Transactions
 	async updateCartQuantities(cartId: number, cartItemId: number, quantity: number) {
 		logger.info('updating item qunatity', { cartId, cartItemId, quantity });
 
 		await AppDataSource.transaction(async (transactionalEntityManager) => {
+			// TODO: you can get the item by cartId and cartItemId instead of getting the whole cart
 			const cart = await transactionalEntityManager.findOne(Cart, {
 				where: { cartId },
 				relations: ['items']
@@ -100,13 +94,10 @@ export class CartService {
 				throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
 			}
 
-			if (!cart.isActive) {
-				throw new ApplicationError(ErrMessages.cart.CartNotActive, StatusCodes.BAD_REQUEST);
-			}
-
-			const item = cart.items.find((item) => item.cartItemId === cartItemId);
+			const item = cart.cartItems.find((item) => item.cartItemId === cartItemId);
 			if (!item) throw new ApplicationError(ErrMessages.cart.CartItemNotFound, StatusCodes.NOT_FOUND);
 
+			// Cart totalItems isn't updated after changing quantity
 			await transactionalEntityManager.update(CartItem, cartItemId, { quantity });
 		});
 	}
