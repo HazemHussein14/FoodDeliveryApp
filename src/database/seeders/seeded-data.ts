@@ -1,16 +1,13 @@
-// import { AbstractEntity } from '../../abstract/base.entity';
 import {
 	Address,
-	Branch,
 	Customer,
+	CustomerAddress,
 	Item,
 	Menu,
 	MenuItem,
 	PaymentMethod,
-	PaymentMethodConfig,
 	PaymentStatus,
 	Restaurant,
-	RestaurantMenu,
 	Role,
 	User,
 	UserRole,
@@ -67,7 +64,6 @@ const userRoleSeedData: SeedData<UserRole> = {
 const addressSeedData: SeedData<Address> = {
 	entity: Address,
 	data: Array.from({ length: 10 }).map(() => ({
-		userId: faker.number.int({ min: 1, max: 100 }), // assuming userId 1-100 exists
 		addressLine1: faker.location.streetAddress(),
 		addressLine2: faker.location.secondaryAddress(),
 		city: faker.location.city()
@@ -87,7 +83,8 @@ const customerSeedData: SeedData<Customer> = {
 
 const menuSeedData: SeedData<Menu> = {
 	entity: Menu,
-	data: Array.from({ length: 10 }).map(() => ({
+	data: Array.from({ length: 10 }).map((_, index) => ({
+		restaurantId: index + 1, // Link to restaurant
 		menuTitle: faker.commerce.department(),
 		isActive: true
 	}))
@@ -126,29 +123,6 @@ const restaurantSeedData: SeedData<Restaurant> = {
 	}))
 };
 
-const restaurantMenuSeedData: SeedData<RestaurantMenu> = {
-	entity: RestaurantMenu,
-	data: Array.from({ length: 10 }).map((_, i) => ({
-		restaurantId: i + 1,
-		menuId: (i % 10) + 1,
-		displayOrder: faker.number.int({ min: 0, max: 5 })
-	}))
-};
-
-const branchSeedData: SeedData<Branch> = {
-	entity: Branch,
-	data: Array.from({ length: 10 }).map((_, i) => ({
-		restaurantId: i + 1,
-		name: `${faker.location.city()} Branch`,
-		address: faker.location.streetAddress(),
-		location: {
-			type: 'Point',
-			coordinates: [parseFloat(faker.location.longitude().toString()), parseFloat(faker.location.latitude().toString())]
-		},
-		isActive: faker.datatype.boolean()
-	}))
-};
-
 const menuItemSeedData: SeedData<MenuItem> = {
 	entity: MenuItem,
 	data: Array.from({ length: 20 }).map((_, index) => ({
@@ -180,6 +154,16 @@ const paymentStatusSeedData: SeedData<PaymentStatus> = {
 	]
 };
 
+// Add CustomerAddress seed data to connect customers with addresses
+const customerAddressSeedData: SeedData<CustomerAddress> = {
+	entity: CustomerAddress,
+	data: Array.from({ length: 10 }).map((_, index) => ({
+		customerId: index + 1,
+		addressId: index + 1,
+		isDefault: index < 5 // Make first 5 addresses default
+	}))
+};
+
 const seedData = [
 	// users
 	userTypesData,
@@ -187,16 +171,13 @@ const seedData = [
 	usersData,
 	customerSeedData,
 	addressSeedData,
+	customerAddressSeedData,
 	userRoleSeedData,
 
 	// menu
+	restaurantSeedData,
 	menuSeedData,
 	itemSeedData,
-
-	// restaurant
-	restaurantSeedData,
-	branchSeedData,
-	restaurantMenuSeedData,
 	menuItemSeedData,
 
 	// payment methods
