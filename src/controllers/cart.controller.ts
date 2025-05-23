@@ -38,14 +38,14 @@ export class CartController {
 		const { cartItemId } = req.validated?.params;
 
 		await this.cartService.removeItem(cartItemId);
-		sendResponse(res, StatusCodes.OK, 'Removed Item Successfully');
+		sendResponse(res, StatusCodes.NO_CONTENT, 'Removed Item Successfully');
 	}
 
 	async clearCart(req: Request, res: Response) {
 		const { cartId } = req.validated?.params;
 
 		await this.cartService.clearCart(cartId);
-		sendResponse(res, StatusCodes.OK, 'Cart Cleared Successfully');
+		sendResponse(res, StatusCodes.NO_CONTENT, 'Cart Cleared Successfully');
 	}
 	async updateCartQuantities(req: Request, res: Response) {
 		const { cartId, cartItemId } = req.validated?.params;
