@@ -68,16 +68,4 @@ export class CartRepository {
 	async deleteAllCartItems(cartId: number): Promise<void> {
 		await this.cartItemRepo.delete({ cartId });
 	}
-
-	// Helper methods
-	async calculateCartTotal(cartId: number): Promise<number> {
-		const cartItems = await this.getCartItems(cartId);
-		return cartItems.reduce((total, item) => total + item.totalPrice, 0);
-	}
-
-	async updateCartTotalItems(cartId: number): Promise<void> {
-		const cartItems = await this.getCartItems(cartId);
-		const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
-		await this.updateCart(cartId, { totalItems });
-	}
 }
