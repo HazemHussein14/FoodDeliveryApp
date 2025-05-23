@@ -1,7 +1,5 @@
 import { AppDataSource } from '../config/data-source';
-import { Menu } from '../models/menu/menu.entity';
-import { MenuItem } from '../models/menu/menu-item.entity';
-import { Item } from '../models/menu/item.entity';
+import { Menu, MenuItem, Item } from '../models';
 import { Repository } from 'typeorm';
 
 export class MenuRepository {

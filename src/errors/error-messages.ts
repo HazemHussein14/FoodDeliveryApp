@@ -1,4 +1,4 @@
-const ErrMessages = {
+export const ErrMessages = {
 	// Common Errors
 	http: {
 		BadRequest: 'Bad Request',
@@ -57,5 +57,3 @@ const ErrMessages = {
 		CartNotActive: 'Cart Is Not Active'
 	}
 };
-
-export default ErrMessages;

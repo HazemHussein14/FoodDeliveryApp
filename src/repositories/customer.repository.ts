@@ -1,6 +1,5 @@
 import { AppDataSource } from '../config/data-source';
-import { Customer } from '../models/customer/customer.entity';
-import { Address } from '../models/customer/address.entity';
+import { Customer, Address } from '../models';
 import { Repository } from 'typeorm';
 
 export class CustomerRepository {

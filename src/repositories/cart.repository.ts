@@ -1,6 +1,5 @@
 import { AppDataSource } from '../config/data-source';
-import { Cart } from '../models/cart/cart.entity';
-import { CartItem } from '../models/cart/cart-item.entity';
+import { Cart, CartItem } from '../models';
 import { Repository } from 'typeorm';
 
 export class CartRepository {

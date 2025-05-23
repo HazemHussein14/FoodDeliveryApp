@@ -1,13 +1,13 @@
-import HttpStatusCodes from 'http-status-codes';
+import { StatusCodes } from 'http-status-codes';
 
-export default class ApplicationError extends Error {
+export class ApplicationError extends Error {
 	public readonly statusCode: number;
 	public readonly isOperational: boolean;
 	public readonly data?: any;
 
 	constructor(
 		message: string,
-		statusCode: number = HttpStatusCodes.INTERNAL_SERVER_ERROR,
+		statusCode: number = StatusCodes.INTERNAL_SERVER_ERROR,
 		isOperational: boolean = true,
 		data?: any
 	) {
