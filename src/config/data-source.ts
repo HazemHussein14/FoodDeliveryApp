@@ -1,4 +1,5 @@
 import { DataSource } from 'typeorm';
+import { initializeTransactionalContext, addTransactionalDataSource, StorageDriver } from 'typeorm-transactional';
 import { config } from './env';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import logger from './logger';
@@ -24,12 +25,17 @@ export const AppDataSource = new DataSource({
 	namingStrategy: new SnakeNamingStrategy()
 });
 
-export const startDataSource = async () => {
-	// start database connection
+export const initializeDataSource = async () => {
 	try {
+		initializeTransactionalContext({ storageDriver: StorageDriver.AUTO });
+
 		await AppDataSource.initialize();
+
+		addTransactionalDataSource(AppDataSource);
+
 		logger.info('Database connected successfully');
 	} catch (error) {
 		logger.error('Error connecting to the database:', error);
+		throw error; // Re-throw to prevent server from starting with failed DB
 	}
 };
