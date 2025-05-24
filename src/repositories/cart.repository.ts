@@ -50,7 +50,7 @@ export class CartRepository {
 		});
 	}
 
-	async getCartItem(cartItemId: number): Promise<CartItem | null> {
+	async getCartItemById (cartItemId: number): Promise<CartItem | null> {
 		return await this.cartItemRepo.findOne({
 			where: { cartItemId }
 		});
@@ -58,7 +58,7 @@ export class CartRepository {
 
 	async updateCartItem(cartItemId: number, data: Partial<CartItem>): Promise<CartItem | null> {
 		await this.cartItemRepo.update(cartItemId, data);
-		return await this.getCartItem(cartItemId);
+		return await this.getCartItemById(cartItemId);
 	}
 
 	async deleteCartItem(cartItemId: number): Promise<void> {
@@ -68,4 +68,16 @@ export class CartRepository {
 	async deleteAllCartItems(cartId: number): Promise<void> {
 		await this.cartItemRepo.delete({ cartId });
 	}
+
+  async getCartItem(filter: { cartId?: number; itemId?: number; cartItemId?: number }): Promise<CartItem | null> {
+		if (!Object.keys(filter).length) return null;
+
+		const cartItem = await this.cartItemRepo.findOne({
+			where: { ...filter },
+			relations: ['item']
+		});
+
+		return cartItem || null;
+	}
+
 }

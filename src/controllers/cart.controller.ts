@@ -3,23 +3,16 @@ import { sendResponse } from '../utils/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 import { CartService } from '../services/cart.service';
 
+declare module 'express-serve-static-core' {
+	interface Request {
+		user?: {
+			userId: number;
+		};
+		validated?: any;
+	}
+}
 export class CartController {
 	private cartService = new CartService();
-
-	// TODO: Use validation middleware
-
-	async addCart(req: Request, res: Response) {
-		try {
-			const cart = await this.cartService.createCart(req.body);
-			sendResponse(res, StatusCodes.CREATED, 'Cart created successfully', cart);
-		} catch (error: any) {
-			// log the error
-			// Preserve the error's status code in the controller
-			// const statusCode = error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
-			// sendResponse(res, statusCode, error.message || 'Failed to process request');
-			sendResponse(res, StatusCodes.BAD_REQUEST, 'Failed to create cart', error.message);
-		}
-	}
 
 	async viewCart(req: Request, res: Response) {
 		try {
@@ -54,4 +47,35 @@ export class CartController {
 		await this.cartService.updateCartQuantities(cartId, cartItemId, quantity);
 		sendResponse(res, StatusCodes.OK, 'Updated Cart Quantities');
 	}
+	/**
+	 * Add an item to the customer's cart.
+	 * - Creates the cart if it doesn't exist.
+	 * - Clears cart if switching restaurants.
+	 * - Prevents duplicate items.
+	 * - Returns updated cart with items.
+	 */
+	async addItemToCart(req: Request, res: Response) {
+		try {
+			const payload = req.validated?.body;
+			const customerId = req.user?.userId || payload.customerId;
+
+			const result = await this.cartService.addItemToCart({
+				...payload,
+				customerId
+			});
+
+			sendResponse(res, StatusCodes.CREATED, 'Item added to cart', result);
+		} catch (error: any) {
+			sendResponse(res, error.statusCode || StatusCodes.BAD_REQUEST, error.message, error?.data);
+		}
+	}
+
+	/**
+	 * (Optional alias)
+	 * Simple alias for addItemToCart()
+	 */
+	async addItem(req: Request, res: Response) {
+		return this.addItemToCart(req, res);
+	}
 }
+
