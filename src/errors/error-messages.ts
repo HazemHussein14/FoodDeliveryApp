@@ -55,5 +55,9 @@ export const ErrMessages = {
 		CartItemNotFound: 'Cart Item Not Found',
 		CartItemAlreadyExists: 'Cart Item Already Exists',
 		CartNotActive: 'Cart Is Not Active'
-	}
+	},
+
+  customer: {
+    CustomerNotFound: "Customer Not Found"
+  }
 };
