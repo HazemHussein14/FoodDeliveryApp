@@ -1,10 +1,15 @@
 import {
 	Address,
+	Cart,
+	CartItem,
 	Customer,
 	CustomerAddress,
 	Item,
 	Menu,
 	MenuItem,
+	Order,
+	OrderItem,
+	OrderStatus,
 	PaymentMethod,
 	PaymentStatus,
 	Restaurant,
@@ -164,6 +169,110 @@ const customerAddressSeedData: SeedData<CustomerAddress> = {
 	}))
 };
 
+// Order Status seed data
+const orderStatusSeedData: SeedData<OrderStatus> = {
+	entity: OrderStatus,
+	data: [
+		{ statusName: 'pending' },
+		{ statusName: 'confirmed' },
+		{ statusName: 'preparing' },
+		{ statusName: 'ready_for_pickup' },
+		{ statusName: 'out_for_delivery' },
+		{ statusName: 'delivered' },
+		{ statusName: 'cancelled' },
+		{ statusName: 'refunded' }
+	]
+};
+
+// Cart seed data
+const cartSeedData: SeedData<Cart> = {
+	entity: Cart,
+	data: Array.from({ length: 20 }).map((_, index) => ({
+		customerId: (index % 10) + 1 // Link to existing customers (1-10)
+	}))
+};
+
+// CartItem seed data
+const cartItemSeedData: SeedData<CartItem> = {
+	entity: CartItem,
+	data: Array.from({ length: 40 }).map((_, index) => {
+		const cartId = Math.floor(index / 2) + 1; // Distribute items across carts
+		const itemId = (index % 20) + 1; // Use existing items (1-20)
+		const quantity = faker.number.int({ min: 1, max: 5 });
+		const price = parseFloat(faker.commerce.price({ min: 5, max: 50 }));
+		const totalPrice = Number((quantity * price).toFixed(2));
+
+		return {
+			cartId,
+			restaurantId: (index % 10) + 1, // Link to existing restaurants (1-10)
+			itemId,
+			quantity,
+			price,
+			totalPrice
+		};
+	})
+};
+
+// Order seed data
+const orderSeedData: SeedData<Order> = {
+	entity: Order,
+	data: Array.from({ length: 15 }).map((_, index) => {
+		const customerId = (index % 10) + 1; // Link to existing customers (1-10)
+		const cartId = index + 1; // Link to existing carts
+		const orderStatusId = faker.number.int({ min: 1, max: 8 }); // Random order status
+		const totalItems = faker.number.int({ min: 1, max: 5 });
+		const totalItemsAmount = parseFloat(faker.commerce.price({ min: 20, max: 200 }));
+		const deliveryFees = parseFloat(faker.commerce.price({ min: 2, max: 10 }));
+		const serviceFees = parseFloat(faker.commerce.price({ min: 1, max: 5 }));
+		const discount = parseFloat(faker.commerce.price({ min: 0, max: 15 }));
+		const totalAmount = Number((totalItemsAmount + deliveryFees + serviceFees - discount).toFixed(2));
+
+		return {
+			orderStatusId,
+			restaurantId: (index % 10) + 1, // Link to existing restaurants (1-10)
+			cartId,
+			customerId,
+			deliveryAddressId: (index % 10) + 1, // Link to existing addresses (1-10)
+			customerInstructions: faker.helpers.arrayElement([
+				'Please ring the doorbell',
+				'Leave at the door',
+				'Call when you arrive',
+				'',
+				'Extra napkins please'
+			]),
+			totalItems,
+			totalItemsAmount,
+			deliveryFees,
+			serviceFees,
+			discount,
+			totalAmount,
+			placedAt: faker.date.recent({ days: 30 }),
+			deliveredAt: faker.date.recent({ days: 15 }),
+			cancellationInfo: {}
+		};
+	})
+};
+
+// OrderItem seed data
+const orderItemSeedData: SeedData<OrderItem> = {
+	entity: OrderItem,
+	data: Array.from({ length: 30 }).map((_, index) => {
+		const orderId = Math.floor(index / 2) + 1; // Distribute items across orders
+		const menuItemId = (index % 20) + 1; // Use existing menu items (1-20)
+		const quantity = faker.number.int({ min: 1, max: 3 });
+		const itemPrice = parseFloat(faker.commerce.price({ min: 5, max: 30 }));
+		const totalPrice = Number((quantity * itemPrice).toFixed(2));
+
+		return {
+			orderId,
+			menuItemId,
+			quantity,
+			itemPrice,
+			totalPrice
+		};
+	})
+};
+
 const seedData = [
 	// users
 	userTypesData,
@@ -182,7 +291,14 @@ const seedData = [
 
 	// payment methods
 	paymentMethodSeedData,
-	paymentStatusSeedData
+	paymentStatusSeedData,
+
+	// order related
+	orderStatusSeedData,
+	cartSeedData,
+	cartItemSeedData,
+	orderSeedData,
+	orderItemSeedData
 ];
 
 export default seedData;
