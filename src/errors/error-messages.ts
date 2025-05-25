@@ -77,5 +77,8 @@ export const ErrMessages = {
 	menu: {
 		NoActiveMenuFound: 'Sorry there is no active menu for current restaurant',
 		ItemNotBelongToActiveMenu: 'Item does not belong to an active menu of this restaurant'
-	}
+	},
+  customer: {
+		CustomerNotFound: 'Customer not found'
+	},
 };

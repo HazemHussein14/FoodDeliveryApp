@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import { sendResponse } from '../utils/sendResponse';
-import { StatusCodes } from 'http-status-codes';
+import HttpStatusCodes, { StatusCodes } from 'http-status-codes';
 import { CartService } from '../services/cart.service';
+import { AuthorizedUser } from '../middlewares/auth.middleware';
+import { ApplicationError } from '../errors';
 
 declare module 'express-serve-static-core' {
 	interface Request {
@@ -14,18 +16,6 @@ declare module 'express-serve-static-core' {
 export class CartController {
 	private cartService = new CartService();
 
-	async viewCart(req: Request, res: Response) {
-		try {
-			// TODO: Use validation middleware to validate customerId
-			// TODO: Use DTO for request and response, send the cart with its items
-			// TODO: Use Logger
-			const customerId = parseInt(req.params.customerId);
-			const cart = await this.cartService.viewCart(customerId);
-			sendResponse(res, StatusCodes.OK, 'Cart fetched successfully', cart);
-		} catch (error: any) {
-			sendResponse(res, StatusCodes.NOT_FOUND, 'Cart not found', error.message);
-		}
-	}
 
 	async removeItem(req: Request, res: Response) {
 		const { cartItemId } = req.validated?.params;
@@ -77,5 +67,18 @@ export class CartController {
 	async addItem(req: Request, res: Response) {
 		return this.addItemToCart(req, res);
 	}
+
+  /**
+	 * View the current user's cart
+	 */
+
+	async viewCart(req: Request, res: Response) {
+	if (!req.user) throw new ApplicationError('Unauthorized access', HttpStatusCodes.UNAUTHORIZED);
+
+	const { userId } = req.user as AuthorizedUser;
+	const cart = await this.cartService.viewCart(Number(userId));
+	sendResponse(res, HttpStatusCodes.OK, 'Cart details', cart);
+}
+
 }
 

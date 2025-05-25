@@ -37,11 +37,10 @@ export class CartResponse {
 	restaurant!: {
 		id: number;
 		name: string;
-	};
+	} | null;
 	items!: CartItemResponse[];
 	totalItems!: number;
 	totalPrice!: string;
 	createdAt!: Date;
 	updatedAt!: Date;
 }
-	
