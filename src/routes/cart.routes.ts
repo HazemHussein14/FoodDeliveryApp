@@ -4,7 +4,8 @@ import { validateRequest } from '../middlewares/validate-request.middleware';
 import {
 	createCartBodySchema,
 	clearCartSchema,
-	removeItemSchema,
+	removeItemParamsSchema,
+	removeItemBodySchema,
 	updateCartQuantitiesParamsSchema,
 	updateCartQuantitiesBodySchema
 } from '../validators/cart.validator';
@@ -53,7 +54,7 @@ CartRouter.post('/add', controller.addCart.bind(controller));
 
 CartRouter.delete(
 	'/item/:cartItemId',
-	validateRequest({ params: removeItemSchema }),
+	validateRequest({ params: removeItemParamsSchema, body: removeItemBodySchema }),
 	controller.removeItem.bind(controller)
 );
 

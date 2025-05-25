@@ -36,8 +36,8 @@ export class CartController {
 	}
 
 	async removeItem(req: Request, res: Response) {
-		const { cartId, cartItemId } = req.validated?.params;
-		const { customerId } = req.validated?.body;
+		const { cartItemId } = req.validated?.params;
+		const { customerId, cartId } = req.validated?.body;
 
 		const removeItemRequest: RemoveCartItemDto = { customerId, cartId, cartItemId };
 		await this.cartService.removeItem(removeItemRequest);

@@ -48,7 +48,7 @@ export class CartService {
 			throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
 		}
 
-		if (cart.customerId !== removeCartItemDto.cartId) {
+		if (cart.customerId !== removeCartItemDto.customerId) {
 			throw new ApplicationError(ErrMessages.http.Unauthorized, StatusCodes.FORBIDDEN);
 		}
 

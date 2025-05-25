@@ -9,8 +9,13 @@ export const idSchema = Joi.number().integer().positive().required().messages({
 
 export const createCartBodySchema = Joi.object({}).required();
 
-export const removeItemSchema = Joi.object({
+export const removeItemParamsSchema = Joi.object({
 	cartItemId: idSchema.label('Cart item ID')
+}).required();
+
+export const removeItemBodySchema = Joi.object({
+	customerId: idSchema.label('Customer ID'),
+	cartId: idSchema.label('Cart ID')
 }).required();
 
 export const clearCartSchema = Joi.object({
