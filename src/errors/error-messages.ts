@@ -54,10 +54,11 @@ export const ErrMessages = {
 		CartAlreadyExists: 'Cart Already Exists',
 		CartItemNotFound: 'Cart Item Not Found',
 		CartItemAlreadyExists: 'Cart Item Already Exists',
-		CartNotActive: 'Cart Is Not Active'
+		CartNotActive: 'Cart Is Not Active',
+		CartItemDoesNotBelongToCart: 'Cart Item does not belong to the cart'
 	},
 
-  customer: {
-    CustomerNotFound: "Customer Not Found"
-  }
+	customer: {
+		CustomerNotFound: 'Customer Not Found'
+	}
 };

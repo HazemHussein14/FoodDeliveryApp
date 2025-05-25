@@ -35,6 +35,20 @@ const cartSwaggerSchema = {
 				description: 'ID of the cart item to remove'
 			}
 		}
+	},
+	RemoveCartItemBody: {
+		type: 'object',
+		required: ['customerId', 'cartId'],
+		properties: {
+			customerId: {
+				type: 'integer',
+				description: 'ID of the customer'
+			},
+			cartId: {
+				type: 'integer',
+				description: 'ID of the cart'
+			}
+		}
 	}
 };
 

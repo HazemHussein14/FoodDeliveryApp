@@ -39,6 +39,12 @@ CartRouter.post('/add', controller.addCart.bind(controller));
  *         schema:
  *           type: integer
  *         description: ID of the cart item to remove
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RemoveCartItemBody'
  *     responses:
  *       200:
  *         description: Item successfully removed from cart
@@ -46,10 +52,13 @@ CartRouter.post('/add', controller.addCart.bind(controller));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/globalResponse'
- *       400:
- *         description: Bad Request - Cart is not active
  *       404:
- *         description: Not Found - Cart item or cart not found
+ *         description: Not Found - Cart item or cart not found or Customer Not Found
+ *       403:
+ *         description: Forbidden - Customer does not own the cart
+ *       400:
+ *         description: Bad Request - Cart Item does not belong to the cart or Cart Item does not belong to the cart
+ *
  */
 
 CartRouter.delete(

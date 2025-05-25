@@ -59,7 +59,7 @@ export class CartService {
 		}
 
 		if (cartItem.cartId !== cart.cartId) {
-			throw new ApplicationError(ErrMessages.cart.CartItemAlreadyExists, StatusCodes.BAD_REQUEST);
+			throw new ApplicationError(ErrMessages.cart.CartItemDoesNotBelongToCart, StatusCodes.BAD_REQUEST);
 		}
 
 		logger.info(`Deleting cart item ${removeCartItemDto.cartItemId}`);
