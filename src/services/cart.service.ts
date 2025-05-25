@@ -3,10 +3,13 @@ import { ErrMessages, ApplicationError } from '../errors';
 import { AppDataSource } from '../config/data-source';
 import { Cart, CartItem } from '../models';
 import logger from '../config/logger';
-import { CartRepository } from '../repositories';
+import { CartRepository, CustomerRepository } from '../repositories';
+import { Transactional } from 'typeorm-transactional';
+import { RemoveCartItemDto } from '../dto/cart-item.dto';
 
 export class CartService {
 	private cartRepo = new CartRepository();
+	private customerRepo = new CustomerRepository();
 
 	// TODO: Use DTO instead of any - Implement DTOs for request/response data:
 	// Add validation
@@ -29,36 +32,40 @@ export class CartService {
 	}
 
 	// TODO: use decorators for Transactions
-	async removeItem(cartItemId: number) {
-		logger.info(`Starting removal of cart item`, { cartItemId });
+	@Transactional()
+	async removeItem(removeCartItemDto: RemoveCartItemDto) {
+		logger.info(`Starting removal of cart item ${removeCartItemDto.cartItemId}`);
 
-		return await AppDataSource.transaction(async (transactionalEntityManager) => {
-			logger.info(`Beginning transaction for cart item removal`, { cartItemId });
+		// TODO: validate that the customer owns the cart
+		const customer = await this.customerRepo.getCustomerById(removeCartItemDto.customerId);
 
-			const cartItem = await transactionalEntityManager.findOne(CartItem, {
-				where: { cartItemId },
-				relations: ['cart']
-			});
+		if (!customer) {
+			throw new ApplicationError(ErrMessages.customer.CustomerNotFound, StatusCodes.NOT_FOUND);
+		}
 
-			if (!cartItem) {
-				throw new ApplicationError(ErrMessages.cart.CartItemNotFound, StatusCodes.NOT_FOUND);
-			}
+		const cart = await this.cartRepo.getCartById(removeCartItemDto.cartId);
+		if (!cart) {
+			throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
+		}
 
-			const cart = cartItem.cart;
-			if (!cart) {
-				throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
-			}
+		if (cart.customerId !== removeCartItemDto.cartId) {
+			throw new ApplicationError(ErrMessages.http.Unauthorized, StatusCodes.FORBIDDEN);
+		}
 
-			// TODO: validate that the customer owns the cart
+		const cartItem = await this.cartRepo.getCartItem(removeCartItemDto.cartItemId);
 
-			logger.info(`Deleting cart item`, { cartItemId });
-			await transactionalEntityManager.delete(CartItem, cartItemId);
+		if (!cartItem) {
+			throw new ApplicationError(ErrMessages.cart.CartItemNotFound, StatusCodes.NOT_FOUND);
+		}
 
-			logger.info(`Successfully removed cart item and updated cart totals`, {
-				cartItemId,
-				cartId: cart.cartId
-			});
-		});
+		if (cartItem.cartId !== cart.cartId) {
+			throw new ApplicationError(ErrMessages.cart.CartItemAlreadyExists, StatusCodes.BAD_REQUEST);
+		}
+
+		logger.info(`Deleting cart item ${removeCartItemDto.cartItemId}`);
+		await this.cartRepo.deleteCartItem(removeCartItemDto.cartItemId);
+
+		logger.info(`Successfully removed cart item ${removeCartItemDto.cartItemId} from cart ${removeCartItemDto.cartId}`);
 	}
 
 	async clearCart(cartId: number) {

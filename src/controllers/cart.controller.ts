@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { sendResponse } from '../utils/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 import { CartService } from '../services/cart.service';
+import { RemoveCartItemDto } from '../dto/cart-item.dto';
 
 export class CartController {
 	private cartService = new CartService();
@@ -35,9 +36,11 @@ export class CartController {
 	}
 
 	async removeItem(req: Request, res: Response) {
-		const { cartItemId } = req.validated?.params;
+		const { cartId, cartItemId } = req.validated?.params;
+		const { customerId } = req.validated?.body;
 
-		await this.cartService.removeItem(cartItemId);
+		const removeItemRequest: RemoveCartItemDto = { customerId, cartId, cartItemId };
+		await this.cartService.removeItem(removeItemRequest);
 		sendResponse(res, StatusCodes.NO_CONTENT, 'Removed Item Successfully');
 	}
 

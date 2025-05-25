@@ -6,3 +6,8 @@ export interface CartItemDto {
 	price: number;
 }
 
+export interface RemoveCartItemDto {
+	customerId: number;
+	cartId: number;
+	cartItemId: number;
+}
