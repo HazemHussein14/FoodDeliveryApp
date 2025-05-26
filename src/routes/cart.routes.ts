@@ -7,14 +7,18 @@ import {
 	removeItemParamsSchema,
 	removeItemBodySchema,
 	updateCartQuantitiesParamsSchema,
-	updateCartQuantitiesBodySchema
+	updateCartQuantitiesBodySchema,
+	addCartItemSchema
 } from '../validators/cart.validator';
+import { isAuthenticated } from '../middlewares/auth.middleware';
 
 const CartRouter = Router();
 const controller = new CartController();
 
-CartRouter.get('/view/:customerId', controller.viewCart.bind(controller));
-CartRouter.post('/add', controller.addCart.bind(controller));
+// CartRouter.get('/view/:customerId', controller.viewCart.bind(controller));
+CartRouter.get('/view', isAuthenticated, controller.viewCart.bind(controller));
+
+CartRouter.post('/add-item', validateRequest({ body: addCartItemSchema }), controller.addItem.bind(controller));
 /**
  * @swagger
  * tags:
