@@ -31,7 +31,6 @@ export const updateCartQuantitiesBodySchema = Joi.object({
 	quantity: idSchema.label('Quantity')
 });
 
-
 export const addCartItemSchema = Joi.object({
 	customerId: idSchema.label('Customer ID'),
 	itemId: idSchema.label('Item ID'),

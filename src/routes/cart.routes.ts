@@ -64,9 +64,9 @@ CartRouter.post('/add-item', validateRequest({ body: addCartItemSchema }), contr
  *         description: Bad Request - Cart Item does not belong to the cart or Cart Item does not belong to the cart
  *
  */
-
 CartRouter.delete(
 	'/item/:cartItemId',
+	isAuthenticated,
 	validateRequest({ params: removeItemParamsSchema, body: removeItemBodySchema }),
 	controller.removeItem.bind(controller)
 );
@@ -104,7 +104,7 @@ CartRouter.delete('/:cartId', validateRequest({ params: clearCartSchema }), cont
  *             properties:
  *               quantity:
  *                 type: integer
- *                 minimum: 1
+ *                 minimum: 0
  *                 example: 3
  *                 description: The new quantity for the cart item
  *     responses:
@@ -117,7 +117,9 @@ CartRouter.delete('/:cartId', validateRequest({ params: clearCartSchema }), cont
  */
 CartRouter.put(
 	'/:cartId/update-cart-quantities/:cartItemId',
+	isAuthenticated,
 	validateRequest({ params: updateCartQuantitiesParamsSchema, body: updateCartQuantitiesBodySchema }),
-	controller.updateCartQuantities.bind(controller)
+	controller.updateCartItemQuantity.bind(controller)
 );
+
 export default CartRouter;

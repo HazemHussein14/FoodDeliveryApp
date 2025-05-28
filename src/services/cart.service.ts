@@ -100,44 +100,32 @@ export class CartService {
 		logger.info(`Successfully removed cart item ${removeCartItemDto.cartItemId} from cart ${removeCartItemDto.cartId}`);
 	}
 
+	@Transactional()
 	async clearCart(cartId: number) {
 		logger.info('clearing cart items', { cartId });
 
-		await AppDataSource.transaction(async (transactionalEntityManager) => {
-			const cart = await transactionalEntityManager.findOne(Cart, {
-				where: { cartId },
-				relations: ['items']
-			});
+		const cart = await this.cartRepo.getCartById(cartId);
+		if (!cart) {
+			throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
+		}
 
-			if (!cart) {
-				throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
-			}
-
-			await transactionalEntityManager.remove(cart.cartItems);
-		});
+		await this.cartRepo.deleteAllCartItems(cartId);
 	}
 
-	// TODO: use decorators for Transactions
+	@Transactional()
 	async updateCartQuantities(cartId: number, cartItemId: number, quantity: number) {
 		logger.info('updating item qunatity', { cartId, cartItemId, quantity });
 
-		await AppDataSource.transaction(async (transactionalEntityManager) => {
-			// TODO: you can get the item by cartId and cartItemId instead of getting the whole cart
-			const cart = await transactionalEntityManager.findOne(Cart, {
-				where: { cartId },
-				relations: ['items']
-			});
+		const cart = await this.cartRepo.getCartById(cartId);
+		if (!cart) {
+			throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
+		}
 
-			if (!cart) {
-				throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
-			}
+		const cartItems = await this.cartRepo.getCartItems(cartId);
+		const item = cart.cartItems.find((item) => item.cartItemId === cartItemId) ?? null;
+		if (!item) throw new ApplicationError(ErrMessages.cart.CartItemNotFound, StatusCodes.NOT_FOUND);
 
-			const item = cart.cartItems.find((item) => item.cartItemId === cartItemId);
-			if (!item) throw new ApplicationError(ErrMessages.cart.CartItemNotFound, StatusCodes.NOT_FOUND);
-
-			// Cart totalItems isn't updated after changing quantity
-			await transactionalEntityManager.update(CartItem, cartItemId, { quantity });
-		});
+		await this.cartRepo.updateCartItem(cartItemId, { quantity });
 	}
 
 	/**
