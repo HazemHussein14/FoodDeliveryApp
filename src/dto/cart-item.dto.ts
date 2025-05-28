@@ -7,7 +7,6 @@ export interface CartItemDto {
 }
 
 export interface RemoveCartItemDto {
-	customerId: number;
-	cartId: number;
+	userId: number;
 	cartItemId: number;
 }

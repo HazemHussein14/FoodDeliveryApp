@@ -36,6 +36,8 @@ CartRouter.post('/add-item', validateRequest({ body: addCartItemSchema }), contr
  *     summary: Remove an item from the cart
  *     description: Removes a specific menu item from the user's shopping cart and updates cart totals
  *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: cartItemId
@@ -43,12 +45,6 @@ CartRouter.post('/add-item', validateRequest({ body: addCartItemSchema }), contr
  *         schema:
  *           type: integer
  *         description: ID of the cart item to remove
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/RemoveCartItemBody'
  *     responses:
  *       200:
  *         description: Item successfully removed from cart
@@ -62,11 +58,14 @@ CartRouter.post('/add-item', validateRequest({ body: addCartItemSchema }), contr
  *         description: Forbidden - Customer does not own the cart
  *       400:
  *         description: Bad Request - Cart Item does not belong to the cart or Cart Item does not belong to the cart
+ *       401:
+ *         description: Unauthorized - User is not authenticated
  *
  */
 
 CartRouter.delete(
 	'/item/:cartItemId',
+	isAuthenticated,
 	validateRequest({ params: removeItemParamsSchema, body: removeItemBodySchema }),
 	controller.removeItem.bind(controller)
 );

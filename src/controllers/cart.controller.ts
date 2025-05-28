@@ -6,22 +6,14 @@ import { RemoveCartItemDto } from '../dto/cart-item.dto';
 import { AuthorizedUser } from '../middlewares/auth.middleware';
 import { ApplicationError } from '../errors';
 
-declare module 'express-serve-static-core' {
-	interface Request {
-		user?: {
-			userId: number;
-		};
-		validated?: any;
-	}
-}
 export class CartController {
 	private cartService = new CartService();
 
 	async removeItem(req: Request, res: Response) {
 		const { cartItemId } = req.validated?.params;
-		const { customerId, cartId } = req.validated?.body;
+		const { userId } = req.user as AuthorizedUser;
 
-		const removeItemRequest: RemoveCartItemDto = { customerId, cartId, cartItemId };
+		const removeItemRequest: RemoveCartItemDto = { userId, cartItemId };
 		await this.cartService.removeItem(removeItemRequest);
 		sendResponse(res, StatusCodes.NO_CONTENT, 'Removed Item Successfully');
 	}
