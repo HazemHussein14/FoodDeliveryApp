@@ -62,7 +62,6 @@ CartRouter.post('/add-item', validateRequest({ body: addCartItemSchema }), contr
  *         description: Unauthorized - User is not authenticated
  *
  */
-
 CartRouter.delete(
 	'/item/:cartItemId',
 	isAuthenticated,
@@ -103,7 +102,7 @@ CartRouter.delete('/:cartId', validateRequest({ params: clearCartSchema }), cont
  *             properties:
  *               quantity:
  *                 type: integer
- *                 minimum: 1
+ *                 minimum: 0
  *                 example: 3
  *                 description: The new quantity for the cart item
  *     responses:
@@ -116,7 +115,9 @@ CartRouter.delete('/:cartId', validateRequest({ params: clearCartSchema }), cont
  */
 CartRouter.put(
 	'/:cartId/update-cart-quantities/:cartItemId',
+	isAuthenticated,
 	validateRequest({ params: updateCartQuantitiesParamsSchema, body: updateCartQuantitiesBodySchema }),
-	controller.updateCartQuantities.bind(controller)
+	controller.updateCartItemQuantity.bind(controller)
 );
+
 export default CartRouter;

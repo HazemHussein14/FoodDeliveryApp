@@ -91,18 +91,16 @@ export class CartService {
 		logger.info(`Successfully removed cart item ${removeCartItemDto.cartItemId}`);
 	}
 
+	@Transactional()
 	async clearCart(userId: number): Promise<void> {
 		logger.info(`Clearing cart for user ${userId}`);
 
 		const { cart } = await this.validateCartOwnership(userId);
 
-		await AppDataSource.transaction(async (transactionalEntityManager) => {
-			await transactionalEntityManager.delete(CartItem, { cartId: cart.cartId });
-		});
-
-		logger.info(`Successfully cleared cart for user ${userId}`);
+		await this.cartRepo.deleteAllCartItems(cart.cartId);
 	}
 
+	@Transactional()
 	async updateCartQuantities(userId: number, cartItemId: number, quantity: number): Promise<void> {
 		logger.info(`Updating item quantity for user ${userId}`, { cartItemId, quantity });
 
@@ -110,15 +108,11 @@ export class CartService {
 			throw new ApplicationError('Quantity must be greater than 0', StatusCodes.BAD_REQUEST);
 		}
 
-		// Validate ownership
 		const { cart } = await this.validateCartOwnership(userId);
 
-		// Validate cart item belongs to user's cart
 		await this.validateCartItem(cartItemId, cart.cartId);
 
-		await AppDataSource.transaction(async (transactionalEntityManager) => {
-			await transactionalEntityManager.update(CartItem, cartItemId, { quantity });
-		});
+		await this.cartRepo.updateCartItem(cartItemId, { quantity });
 	}
 
 	/**

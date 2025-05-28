@@ -24,7 +24,8 @@ export class CartController {
 		await this.cartService.clearCart(cartId);
 		sendResponse(res, StatusCodes.NO_CONTENT, 'Cart Cleared Successfully');
 	}
-	async updateCartQuantities(req: Request, res: Response) {
+
+	async updateCartItemQuantity(req: Request, res: Response) {
 		const { cartId, cartItemId } = req.validated?.params;
 		const { quantity } = req.validated?.body;
 
