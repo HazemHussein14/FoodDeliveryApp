@@ -12,7 +12,6 @@ export class CartService {
 	private cartRepo = new CartRepository();
 	private menuRepo = new MenuRepository();
 	private customerRepo = new CustomerRepository();
-
 	private dataSource = AppDataSource;
 
 	private async validateCustomer(userId: number): Promise<Customer> {
@@ -23,119 +22,101 @@ export class CartService {
 		return customer;
 	}
 
-	private async validateCart(customerId: number): Promise<Cart> {
-		const cart = await this.cartRepo.getCartByCustomerId(customerId);
+	private async validateCartExist(cartId: number): Promise<Cart> {
+		const cart = await this.cartRepo.getCartById(cartId);
 		if (!cart) {
 			throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
 		}
 		return cart;
 	}
 
-	async viewCart(userId: number): Promise<CartResponse> {
-		// Step 1: Validate that the user has a customer profile
-		const customer = await this.validateCustomer(userId);
-
-		// Step 2: Get or validate the cart for this customer
-		const cart = await this.validateCart(customer.customerId);
-
-		// Step 3: Get cart items
-		const cartItems = await this.cartRepo.getCartItems(cart.cartId);
-
-		// Step 4: Prepare the response
-		const hasItems = cartItems.length > 0;
-		const restaurant =
-			cartItems.length > 0 ? { id: cartItems[0].restaurantId!, name: cartItems[0].restaurant?.name || '' } : null;
-
-		const items = cartItems.map((item) => this.cartItemReturn(item));
-
-		const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-		const totalPrice = items.reduce((sum, item) => sum + item.totalPrice, 0);
-
-		return {
-			id: cart.cartId,
-			customerId: cart.customerId,
-			restaurant,
-			items,
-			totalItems,
-			totalPrice: totalPrice.toFixed(2),
-			createdAt: cart.createdAt,
-			updatedAt: cart.updatedAt
-		};
-	}
-
-	// TODO: use decorators for Transactions
-	@Transactional()
-	async removeItem(removeCartItemDto: RemoveCartItemDto) {
-		logger.info(`Starting removal of cart item ${removeCartItemDto.cartItemId}`);
-
-		// TODO: validate that the customer owns the cart
-		const customer = await this.customerRepo.getCustomerById(removeCartItemDto.customerId);
-
-		if (!customer) {
-			throw new ApplicationError(ErrMessages.customer.CustomerNotFound, StatusCodes.NOT_FOUND);
-		}
-
-		const cart = await this.cartRepo.getCartById(removeCartItemDto.cartId);
-		if (!cart) {
-			throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
-		}
-
-		if (cart.customerId !== removeCartItemDto.customerId) {
-			throw new ApplicationError(ErrMessages.http.Unauthorized, StatusCodes.FORBIDDEN);
-		}
-
-		const cartItem = await this.cartRepo.getCartItem({ cartItemId: removeCartItemDto.cartItemId });
-
+	private async validateCartItemExist(cartItemId: number) {
+		const cartItem = await this.cartRepo.getCartItem({ cartItemId });
 		if (!cartItem) {
 			throw new ApplicationError(ErrMessages.cart.CartItemNotFound, StatusCodes.NOT_FOUND);
 		}
 
-		if (cartItem.cartId !== cart.cartId) {
+		return cartItem;
+	}
+
+	private validateCartItemBelongsToCart(cartItemCartId: number, cartId: number) {
+		if (cartItemCartId !== cartId) {
 			throw new ApplicationError(ErrMessages.cart.CartItemDoesNotBelongToCart, StatusCodes.BAD_REQUEST);
 		}
+	}
 
-		logger.info(`Deleting cart item ${removeCartItemDto.cartItemId}`);
+	private async validateCartItem(cartItemId: number, cartId: number) {
+		const cartItem = await this.validateCartItemExist(cartItemId);
+
+		this.validateCartItemBelongsToCart(cartItem.cartId, cartId);
+	}
+
+	private async validateCartOwnership(userId: number, cartId?: number): Promise<{ customer: Customer; cart: Cart }> {
+		const customer = await this.validateCustomer(userId);
+
+		let cart: Cart | null;
+		if (cartId) {
+			cart = await this.validateCartExist(cartId);
+			if (cart.customerId !== customer.customerId) {
+				throw new ApplicationError(ErrMessages.http.Unauthorized, StatusCodes.FORBIDDEN);
+			}
+		} else {
+			cart = await this.cartRepo.getCartByCustomerId(customer.customerId);
+			if (!cart) {
+				throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
+			}
+		}
+
+		return { customer, cart };
+	}
+
+	async viewCart(userId: number): Promise<CartResponse> {
+		const { cart } = await this.validateCartOwnership(userId);
+		const cartItems = await this.cartRepo.getCartItems(cart.cartId);
+		const items = cartItems.map((item) => this.cartItemReturn(item));
+		return this.cartResponse(cart, items);
+	}
+
+	@Transactional()
+	async removeItem(removeCartItemDto: RemoveCartItemDto) {
+		logger.info(`Starting removal of cart item ${removeCartItemDto.cartItemId}`);
+
+		// Get user's cart
+		const { cart } = await this.validateCartOwnership(removeCartItemDto.userId);
+
+		// Validate cart item exists and belongs to this cart
+		await this.validateCartItem(removeCartItemDto.cartItemId, cart.cartId);
+
 		await this.cartRepo.deleteCartItem(removeCartItemDto.cartItemId);
-
-		logger.info(`Successfully removed cart item ${removeCartItemDto.cartItemId} from cart ${removeCartItemDto.cartId}`);
+		logger.info(`Successfully removed cart item ${removeCartItemDto.cartItemId}`);
 	}
 
-	async clearCart(cartId: number) {
-		logger.info('clearing cart items', { cartId });
+	async clearCart(userId: number): Promise<void> {
+		logger.info(`Clearing cart for user ${userId}`);
+
+		const { cart } = await this.validateCartOwnership(userId);
 
 		await AppDataSource.transaction(async (transactionalEntityManager) => {
-			const cart = await transactionalEntityManager.findOne(Cart, {
-				where: { cartId },
-				relations: ['items']
-			});
-
-			if (!cart) {
-				throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
-			}
-
-			await transactionalEntityManager.remove(cart.cartItems);
+			await transactionalEntityManager.delete(CartItem, { cartId: cart.cartId });
 		});
+
+		logger.info(`Successfully cleared cart for user ${userId}`);
 	}
 
-	// TODO: use decorators for Transactions
-	async updateCartQuantities(cartId: number, cartItemId: number, quantity: number) {
-		logger.info('updating item qunatity', { cartId, cartItemId, quantity });
+	async updateCartQuantities(userId: number, cartItemId: number, quantity: number): Promise<void> {
+		logger.info(`Updating item quantity for user ${userId}`, { cartItemId, quantity });
+
+		if (quantity <= 0) {
+			throw new ApplicationError('Quantity must be greater than 0', StatusCodes.BAD_REQUEST);
+		}
+
+		// Validate ownership
+		const { cart } = await this.validateCartOwnership(userId);
+
+		// Validate cart item belongs to user's cart
+		await this.validateCartItem(cartItemId, cart.cartId);
 
 		await AppDataSource.transaction(async (transactionalEntityManager) => {
-			// TODO: you can get the item by cartId and cartItemId instead of getting the whole cart
-			const cart = await transactionalEntityManager.findOne(Cart, {
-				where: { cartId },
-				relations: ['items']
-			});
-
-			if (!cart) {
-				throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
-			}
-
-			const item = cart.cartItems.find((item) => item.cartItemId === cartItemId);
-			if (!item) throw new ApplicationError(ErrMessages.cart.CartItemNotFound, StatusCodes.NOT_FOUND);
-
-			// Cart totalItems isn't updated after changing quantity
 			await transactionalEntityManager.update(CartItem, cartItemId, { quantity });
 		});
 	}
@@ -258,8 +239,7 @@ export class CartService {
 	}
 
 	private cartResponse(cart: Cart, items: CartItemResponse[]): CartResponse {
-		const restaurant = { id: items[0].restaurantId!, name: items[0].restaurantName! };
-		const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+		const restaurant = items.length > 0 ? { id: items[0].restaurantId!, name: items[0].restaurantName! } : null;
 		const totalPrice = items.reduce((sum, item) => sum + item.totalPrice, 0);
 
 		return {
@@ -267,7 +247,6 @@ export class CartService {
 			customerId: cart.customerId,
 			restaurant,
 			items,
-			totalItems,
 			totalPrice: totalPrice.toFixed(2),
 			createdAt: cart.createdAt,
 			updatedAt: cart.updatedAt

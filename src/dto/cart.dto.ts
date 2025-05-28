@@ -39,7 +39,6 @@ export class CartResponse {
 		name: string;
 	} | null;
 	items!: CartItemResponse[];
-	totalItems!: number;
 	totalPrice!: string;
 	createdAt!: Date;
 	updatedAt!: Date;
