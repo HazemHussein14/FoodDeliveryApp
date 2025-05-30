@@ -21,19 +21,31 @@ export class OrderRepository {
 
 	async getOrderById(orderId: number): Promise<Order | null> {
 		return await this.orderRepo.findOne({
-			where: { orderId },
+			where: { orderId }
 		});
 	}
 
-	async getOrdersByCustomerId(customerId: number): Promise<Order[]> {
+	async getAllOrdersByCustomerId(customerId: number): Promise<Order[]> {
 		return await this.orderRepo.find({
-			where: { customerId },
+			where: { customerId }
 		});
 	}
 
-	async getOrdersByRestaurantId(restaurantId: number): Promise<Order[]> {
+	async getOrderByCustomerId(orderId: number, customerId: number): Promise<Order | null> {
+		return await this.orderRepo.findOne({
+			where: { customerId, orderId }
+		});
+	}
+
+	async getAllOrdersByRestaurantId(restaurantId: number): Promise<Order[]> {
 		return await this.orderRepo.find({
-			where: { restaurantId },
+			where: { restaurantId }
+		});
+	}
+
+	async getOrderByRestaurantId(orderId: number, restaurantId: number): Promise<Order | null> {
+		return await this.orderRepo.findOne({
+			where: { restaurantId, orderId }
 		});
 	}
 
@@ -77,10 +89,16 @@ export class OrderRepository {
 		});
 	}
 
-	async getOrderItem(orderItemId: number): Promise<OrderItem | null> {
+	async getOrderItemById(orderItemId: number): Promise<OrderItem | null> {
 		return await this.orderItemRepo.findOne({
 			where: { orderItemId },
 			relations: ['item']
+		});
+	}
+
+	async getOrderItemByOrderId(orderId: number, orderItemId: number) {
+		return this.orderItemRepo.findOne({
+			where: { orderId, orderItemId }
 		});
 	}
 
