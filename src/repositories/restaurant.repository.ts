@@ -64,7 +64,6 @@ export class RestaurantRepository {
 	async getRestaurantsByStatus(status: 'open' | 'busy' | 'pause' | 'closed'): Promise<Restaurant[]> {
 		return await this.restaurantRepo.find({
 			where: { status, isActive: true },
-			relations: ['user']
 		});
 	}
 }

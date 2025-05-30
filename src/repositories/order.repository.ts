@@ -22,15 +22,18 @@ export class OrderRepository {
 	async getOrderById(orderId: number): Promise<Order | null> {
 		return await this.orderRepo.findOne({
 			where: { orderId },
-			relations: ['orderStatus', 'branch', 'cart', 'customer', 'deliveryAddress']
 		});
 	}
 
 	async getOrdersByCustomerId(customerId: number): Promise<Order[]> {
 		return await this.orderRepo.find({
 			where: { customerId },
-			relations: ['orderStatus', 'branch', 'cart', 'customer', 'deliveryAddress'],
-			order: { createdAt: 'DESC' }
+		});
+	}
+
+	async getOrdersByRestaurantId(restaurantId: number): Promise<Order[]> {
+		return await this.orderRepo.find({
+			where: { restaurantId },
 		});
 	}
 
