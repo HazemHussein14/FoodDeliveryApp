@@ -25,7 +25,9 @@ services:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - node-app
-
+    networks:
+      - app_network
+      
   postgres-srv:
     image: postgres
     restart: always

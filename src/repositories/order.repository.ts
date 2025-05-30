@@ -1,7 +1,5 @@
 import { AppDataSource } from '../config/data-source';
-import { Order } from '../models/order/order.entity';
-import { OrderItem } from '../models/order/order-item.entity';
-import { OrderStatus } from '../models/order/order-status.entity';
+import { Order, OrderItem, OrderStatus } from '../models';
 import { Repository } from 'typeorm';
 
 export class OrderRepository {

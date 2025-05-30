@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response, ErrorRequestHandler } from 'express';
 import logger from '../config/logger';
-import HttpStatusCodes from 'http-status-codes';
-import ErrMessages from '../errors/error-messages';
-import ApplicationError from '../errors/application.error';
+import { StatusCodes } from 'http-status-codes';
+import { ErrMessages, ApplicationError } from '../errors';
 
 export const ErrorHandler: ErrorRequestHandler = (err: Error, req: Request, res: Response, _next: NextFunction) => {
 	const responseAt = new Date().toISOString();
@@ -23,7 +22,7 @@ export const ErrorHandler: ErrorRequestHandler = (err: Error, req: Request, res:
 	} else {
 		logger.error(err?.message || 'Unexpected Error:', err);
 
-		res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({
+		res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
 			// name: err.name,
 			status: 'error',
 			requestAt: req.requestAt,

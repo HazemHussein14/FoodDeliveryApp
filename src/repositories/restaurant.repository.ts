@@ -1,5 +1,5 @@
 import { AppDataSource } from '../config/data-source';
-import { Restaurant } from '../models/restaurant/restaurant.entity';
+import { Restaurant } from '../models';
 import { Repository } from 'typeorm';
 
 export class RestaurantRepository {

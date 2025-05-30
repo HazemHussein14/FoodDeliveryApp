@@ -9,9 +9,10 @@ import {
 	OneToMany
 } from 'typeorm';
 import { User } from '../user/user.entity';
-import { AbstractEntity } from '../../abstract/base.entity';
-import { RestaurantMenu } from './restaurant-menu.entity';
-import { Branch } from './branch.entity';
+import { CartItem } from '../cart/cart-item.entity';
+import { AbstractEntity } from '../base.entity';
+import { Menu } from '../menu/menu.entity';
+import { Order } from '../order/order.entity';
 
 // Restaurant entity
 @Entity()
@@ -56,9 +57,12 @@ export class Restaurant extends AbstractEntity {
 	@JoinColumn({ name: 'user_id' })
 	user!: User;
 
-	@OneToMany(() => RestaurantMenu, (restaurantMenu) => restaurantMenu.restaurant)
-	menus!: RestaurantMenu[];
+	@OneToMany(() => Menu, (menu) => menu.restaurant)
+	menus!: Menu[];
 
-	@OneToMany(() => Branch, (branch) => branch.restaurant)
-	branches!: Branch[];
+	@OneToMany(() => CartItem, (cartItem) => cartItem.restaurant)
+	cartItems!: CartItem[];
+
+	@OneToMany(() => Order, (orderOrder) => orderOrder.restaurant)
+	orders!: Order[];
 }

@@ -6,8 +6,6 @@ export * from './user/role.entity';
 
 // Restaurant related entities
 export * from './restaurant/restaurant.entity';
-export * from './restaurant/restaurant-menu.entity';
-export * from './restaurant/branch.entity';
 
 // Menu related entities
 export * from './menu/menu.entity';

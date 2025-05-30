@@ -1,13 +1,27 @@
-import { Column, Entity, PrimaryColumn, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import {
+	Column,
+	Entity,
+	PrimaryColumn,
+	ManyToOne,
+	JoinColumn,
+	CreateDateColumn,
+	Unique,
+	PrimaryGeneratedColumn
+} from 'typeorm';
 import { Customer } from './customer.entity';
 import { Address } from './address.entity';
+import { AbstractEntity } from '../base.entity';
 
 @Entity()
-export class CustomerAddress {
-	@PrimaryColumn()
+@Unique(['addressId', 'customerId'])
+export class CustomerAddress extends AbstractEntity {
+	@PrimaryGeneratedColumn()
+	customerAddressId!: number;
+
+	@Column()
 	addressId!: number;
 
-	@PrimaryColumn()
+	@Column()
 	customerId!: number;
 
 	@Column({ default: false })
