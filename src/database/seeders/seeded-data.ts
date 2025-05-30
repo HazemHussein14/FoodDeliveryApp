@@ -13,6 +13,7 @@ import {
 	PaymentMethod,
 	PaymentStatus,
 	Restaurant,
+	RestaurantSetting,
 	Role,
 	User,
 	UserRole,
@@ -108,12 +109,23 @@ const itemSeedData: SeedData<Item> = {
 	}))
 };
 
+// * Restaurant Settings
+
+const restaurantSettingSeedData: SeedData<RestaurantSetting> = {
+	entity: RestaurantSetting,
+	data: Array.from({ length: 10 }).map((_, index) => ({
+		serviceFeePercentage: parseFloat(faker.number.float({ min: 1, max: 10, fractionDigits: 2 }).toFixed(2)),
+		deliveryFeePercentage: parseFloat(faker.number.float({ min: 5, max: 15, fractionDigits: 2 }).toFixed(2))
+	}))
+};
+
 // * restaurants
 
 const restaurantSeedData: SeedData<Restaurant> = {
 	entity: Restaurant,
 	data: Array.from({ length: 10 }).map((_, index) => ({
 		userId: index + 1,
+		restaurantSettingId: index + 1, // Link to restaurant setting
 		name: faker.company.name(),
 		logoUrl: faker.image.url(),
 		bannerUrl: faker.image.url(),
@@ -273,6 +285,8 @@ const orderItemSeedData: SeedData<OrderItem> = {
 	})
 };
 
+
+
 const seedData = [
 	// users
 	userTypesData,
@@ -283,7 +297,8 @@ const seedData = [
 	customerAddressSeedData,
 	userRoleSeedData,
 
-	// menu
+	// restaurant and menu
+	restaurantSettingSeedData,
 	restaurantSeedData,
 	menuSeedData,
 	itemSeedData,
