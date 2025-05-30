@@ -1,6 +1,5 @@
 import { AppDataSource } from '../config/data-source';
-import { Cart } from '../models/cart/cart.entity';
-import { CartItem } from '../models/cart/cart-item.entity';
+import { Cart, CartItem } from '../models';
 import { Repository } from 'typeorm';
 
 export class CartRepository {
@@ -20,15 +19,13 @@ export class CartRepository {
 
 	async getCartById(cartId: number): Promise<Cart | null> {
 		return await this.cartRepo.findOne({
-			where: { cartId },
-			relations: ['customer', 'restaurant']
+			where: { cartId }
 		});
 	}
 
 	async getCartByCustomerId(customerId: number): Promise<Cart | null> {
 		return await this.cartRepo.findOne({
-			where: { customerId },
-			relations: ['customer', 'restaurant']
+			where: { customerId }
 		});
 	}
 
@@ -49,21 +46,27 @@ export class CartRepository {
 
 	async getCartItems(cartId: number): Promise<CartItem[]> {
 		return await this.cartItemRepo.find({
-			where: { cartId },
-			relations: ['item']
+			where: { cartId }
 		});
 	}
 
-	async getCartItem(cartItemId: number): Promise<CartItem | null> {
+	async getCartItemById(cartItemId: number): Promise<CartItem | null> {
 		return await this.cartItemRepo.findOne({
-			where: { cartItemId },
-			relations: ['item']
+			where: { cartItemId }
 		});
+	}
+
+	async getCurrentRestaurantOfCart(cartId: number) {
+		const cartItem = await this.cartItemRepo.findOne({
+			where: { cartId },
+			order: { cartItemId: 'ASC' }
+		});
+		return cartItem?.restaurantId ?? null;
 	}
 
 	async updateCartItem(cartItemId: number, data: Partial<CartItem>): Promise<CartItem | null> {
 		await this.cartItemRepo.update(cartItemId, data);
-		return await this.getCartItem(cartItemId);
+		return await this.getCartItemById(cartItemId);
 	}
 
 	async deleteCartItem(cartItemId: number): Promise<void> {
@@ -74,15 +77,14 @@ export class CartRepository {
 		await this.cartItemRepo.delete({ cartId });
 	}
 
-	// Helper methods
-	async calculateCartTotal(cartId: number): Promise<number> {
-		const cartItems = await this.getCartItems(cartId);
-		return cartItems.reduce((total, item) => total + item.totalPrice, 0);
-	}
+	async getCartItem(filter: { cartId?: number; itemId?: number; cartItemId?: number }): Promise<CartItem | null> {
+		if (!Object.keys(filter).length) return null;
 
-	async updateCartTotalItems(cartId: number): Promise<void> {
-		const cartItems = await this.getCartItems(cartId);
-		const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
-		await this.updateCart(cartId, { totalItems });
+		const cartItem = await this.cartItemRepo.findOne({
+			where: { ...filter },
+			relations: ['item']
+		});
+
+		return cartItem || null;
 	}
 }

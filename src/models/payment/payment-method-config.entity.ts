@@ -7,7 +7,7 @@ import {
 	CreateDateColumn,
 	UpdateDateColumn
 } from 'typeorm';
-import { AbstractEntity } from '../../abstract/base.entity';
+import { AbstractEntity } from '../base.entity';
 import { PaymentMethod } from './payment-method.entity';
 
 @Entity()

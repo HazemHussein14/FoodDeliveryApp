@@ -1,6 +1,5 @@
 import { AppDataSource } from '../config/data-source';
-import { Customer } from '../models/customer/customer.entity';
-import { Address } from '../models/customer/address.entity';
+import { Customer, Address } from '../models';
 import { Repository } from 'typeorm';
 
 export class CustomerRepository {
@@ -20,15 +19,13 @@ export class CustomerRepository {
 
 	async getCustomerById(customerId: number): Promise<Customer | null> {
 		return await this.customerRepo.findOne({
-			where: { customerId },
-			relations: ['user']
+			where: { customerId }
 		});
 	}
 
 	async getCustomerByUserId(userId: number): Promise<Customer | null> {
 		return await this.customerRepo.findOne({
-			where: { userId },
-			relations: ['user']
+			where: { userId }
 		});
 	}
 
@@ -45,15 +42,7 @@ export class CustomerRepository {
 
 	async getAddressById(addressId: number): Promise<Address | null> {
 		return await this.addressRepo.findOne({
-			where: { addressId },
-			relations: ['user']
-		});
-	}
-
-	async getAddressesByUserId(userId: number): Promise<Address[]> {
-		return await this.addressRepo.find({
-			where: { userId },
-			relations: ['user']
+			where: { addressId }
 		});
 	}
 
@@ -64,25 +53,5 @@ export class CustomerRepository {
 
 	async deleteAddress(addressId: number): Promise<void> {
 		await this.addressRepo.delete(addressId);
-	}
-
-	// Helper methods
-	async getCustomerWithAddresses(customerId: number): Promise<Customer | null> {
-		const customer = await this.getCustomerById(customerId);
-		if (customer) {
-			const addresses = await this.getAddressesByUserId(customer.userId);
-			return { ...customer, addresses } as Customer & { addresses: Address[] };
-		}
-		return null;
-	}
-
-	async searchCustomers(query: string): Promise<Customer[]> {
-		return await this.customerRepo
-			.createQueryBuilder('customer')
-			.leftJoinAndSelect('customer.user', 'user')
-			.where('user.firstName ILIKE :query', { query: `%${query}%` })
-			.orWhere('user.lastName ILIKE :query', { query: `%${query}%` })
-			.orWhere('user.email ILIKE :query', { query: `%${query}%` })
-			.getMany();
 	}
 }

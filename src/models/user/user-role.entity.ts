@@ -8,7 +8,7 @@ import {
 	JoinColumn,
 	Unique
 } from 'typeorm';
-import { AbstractEntity } from '../../abstract/base.entity';
+import { AbstractEntity } from '../base.entity';
 import { User } from './user.entity';
 import { Role } from './role.entity';
 

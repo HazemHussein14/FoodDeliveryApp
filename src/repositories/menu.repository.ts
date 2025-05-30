@@ -1,7 +1,5 @@
 import { AppDataSource } from '../config/data-source';
-import { Menu } from '../models/menu/menu.entity';
-import { MenuItem } from '../models/menu/menu-item.entity';
-import { Item } from '../models/menu/item.entity';
+import { Menu, MenuItem, Item } from '../models';
 import { Repository } from 'typeorm';
 
 export class MenuRepository {
@@ -69,6 +67,19 @@ export class MenuRepository {
 		return await this.itemRepo.findOne({
 			where: { itemId }
 		});
+	}
+
+	async getItemByRestaurant(restaurantId: number, itemId: number): Promise<Item | null> {
+		const item = await this.itemRepo
+			.createQueryBuilder('menuItem')
+			.innerJoin('menuItem.menu', 'menu', 'menuItem.menuId = menu.menuId')
+			.innerJoin('menu.restaurant', 'restaurant', 'menu.restaurantId = restaurant.restaurantId')
+			.where('menuItem.itemId = :itemId', { itemId })
+			.andWhere('menu.isActive = true')
+			.andWhere('restaurant.restaurantId = :restaurantId', { restaurantId })
+			.getOne();
+
+		return item;
 	}
 
 	async updateItem(itemId: number, data: Partial<Item>): Promise<Item | null> {

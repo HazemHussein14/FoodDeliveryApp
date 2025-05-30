@@ -1,8 +1,5 @@
 import { AppDataSource } from '../config/data-source';
-import { Transaction } from '../models/payment/transaction.entity';
-import { TransactionDetail } from '../models/payment/transaction-detail.entity';
-import { PaymentMethod } from '../models/payment/payment-method.entity';
-import { PaymentStatus } from '../models/payment/payment-status.entity';
+import { Transaction, TransactionDetail, PaymentMethod, PaymentStatus } from '../models';
 import { Repository } from 'typeorm';
 
 export class PaymentRepository {
