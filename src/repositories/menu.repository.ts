@@ -69,6 +69,19 @@ export class MenuRepository {
 		});
 	}
 
+	async getItemByRestaurant(restaurantId: number, itemId: number): Promise<Item | null> {
+		const item = await this.itemRepo
+			.createQueryBuilder('menuItem')
+			.innerJoin('menuItem.menu', 'menu', 'menuItem.menuId = menu.menuId')
+			.innerJoin('menu.restaurant', 'restaurant', 'menu.restaurantId = restaurant.restaurantId')
+			.where('menuItem.itemId = :itemId', { itemId })
+			.andWhere('menu.isActive = true')
+			.andWhere('restaurant.restaurantId = :restaurantId', { restaurantId })
+			.getOne();
+
+		return item;
+	}
+
 	async updateItem(itemId: number, data: Partial<Item>): Promise<Item | null> {
 		await this.itemRepo.update(itemId, data);
 		return await this.getItemById(itemId);

@@ -12,9 +12,8 @@ export class CartService {
 	private cartRepo = new CartRepository();
 	private menuRepo = new MenuRepository();
 	private customerRepo = new CustomerRepository();
-	private dataSource = AppDataSource;
 
-	private async validateCustomer(userId: number): Promise<Customer> {
+	private async getCustomerByUserId(userId: number): Promise<Customer> {
 		const customer = await this.customerRepo.getCustomerByUserId(userId);
 		if (!customer) {
 			throw new ApplicationError(ErrMessages.customer.CustomerNotFound, StatusCodes.NOT_FOUND);
@@ -22,7 +21,7 @@ export class CartService {
 		return customer;
 	}
 
-	private async validateCartExist(cartId: number): Promise<Cart> {
+	private async getCartById(cartId: number): Promise<Cart> {
 		const cart = await this.cartRepo.getCartById(cartId);
 		if (!cart) {
 			throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
@@ -30,7 +29,7 @@ export class CartService {
 		return cart;
 	}
 
-	private async validateCartItemExist(cartItemId: number) {
+	private async getCartItemById(cartItemId: number) {
 		const cartItem = await this.cartRepo.getCartItem({ cartItemId });
 		if (!cartItem) {
 			throw new ApplicationError(ErrMessages.cart.CartItemNotFound, StatusCodes.NOT_FOUND);
@@ -46,17 +45,17 @@ export class CartService {
 	}
 
 	private async validateCartItem(cartItemId: number, cartId: number) {
-		const cartItem = await this.validateCartItemExist(cartItemId);
+		const cartItem = await this.getCartItemById(cartItemId);
 
 		this.validateCartItemBelongsToCart(cartItem.cartId, cartId);
 	}
 
-	private async validateCartOwnership(userId: number, cartId?: number): Promise<{ customer: Customer; cart: Cart }> {
-		const customer = await this.validateCustomer(userId);
+	private async validateCartBelongsToCustomer(userId: number, cartId?: number): Promise<{ customer: Customer; cart: Cart }> {
+		const customer = await this.getCustomerByUserId(userId);
 
 		let cart: Cart | null;
 		if (cartId) {
-			cart = await this.validateCartExist(cartId);
+			cart = await this.getCartById(cartId);
 			if (cart.customerId !== customer.customerId) {
 				throw new ApplicationError(ErrMessages.http.Unauthorized, StatusCodes.FORBIDDEN);
 			}
@@ -71,7 +70,7 @@ export class CartService {
 	}
 
 	async viewCart(userId: number): Promise<CartResponse> {
-		const { cart } = await this.validateCartOwnership(userId);
+		const { cart } = await this.validateCartBelongsToCustomer(userId);
 		const cartItems = await this.cartRepo.getCartItems(cart.cartId);
 		const items = cartItems.map((item) => this.cartItemReturn(item));
 		return this.cartResponse(cart, items);
@@ -82,7 +81,7 @@ export class CartService {
 		logger.info(`Starting removal of cart item ${removeCartItemDto.cartItemId}`);
 
 		// Get user's cart
-		const { cart } = await this.validateCartOwnership(removeCartItemDto.userId);
+		const { cart } = await this.validateCartBelongsToCustomer(removeCartItemDto.userId);
 
 		// Validate cart item exists and belongs to this cart
 		await this.validateCartItem(removeCartItemDto.cartItemId, cart.cartId);
@@ -95,7 +94,7 @@ export class CartService {
 	async clearCart(userId: number): Promise<void> {
 		logger.info(`Clearing cart for user ${userId}`);
 
-		const { cart } = await this.validateCartOwnership(userId);
+		const { cart } = await this.validateCartBelongsToCustomer(userId);
 
 		await this.cartRepo.deleteAllCartItems(cart.cartId);
 	}
@@ -108,7 +107,7 @@ export class CartService {
 			throw new ApplicationError('Quantity must be greater than 0', StatusCodes.BAD_REQUEST);
 		}
 
-		const { cart } = await this.validateCartOwnership(userId);
+		const { cart } = await this.validateCartBelongsToCustomer(userId);
 
 		await this.validateCartItem(cartItemId, cart.cartId);
 
@@ -123,6 +122,7 @@ export class CartService {
 	 * - Prevents duplicate items
 	 * - Returns full cart with items
 	 */
+	@Transactional()
 	async addItemToCart(payload: CartAddItemDto): Promise<CartResponse> {
 		const { customerId, restaurantId, itemId, quantity } = payload;
 
@@ -130,7 +130,7 @@ export class CartService {
 		const item = await this.getItemByIdOrFail(itemId);
 
 		// 2. Get or create cart
-		let cart = await this.getCart(customerId);
+		let cart = await this.getCartByCustomerId(customerId);
 		const isNewCart = !cart;
 		if (isNewCart) cart = await this.createCart(customerId);
 
@@ -183,16 +183,12 @@ export class CartService {
 		return item;
 	}
 
-	private async getCart(customerId: number) {
+	private async getCartByCustomerId(customerId: number) {
 		return await this.cartRepo.getCartByCustomerId(customerId);
 	}
 
 	private async getCurrentRestaurantOfCart(cartId: number) {
-		const cartItem = await this.dataSource.getRepository(CartItem).findOne({
-			where: { cartId },
-			order: { cartItemId: 'ASC' }
-		});
-		return cartItem?.restaurantId ?? null;
+		return await this.cartRepo.getCurrentRestaurantOfCart(cartId);
 	}
 
 	private async isItemExistOnCart(cartId: number, itemId: number) {
@@ -201,15 +197,7 @@ export class CartService {
 	}
 
 	private async validateItemBelongsToRestaurant(restaurantId: number, itemId: number): Promise<void> {
-		const item = await this.dataSource
-			.getRepository(MenuItem)
-			.createQueryBuilder('menuItem')
-			.innerJoin('menuItem.menu', 'menu', 'menuItem.menuId = menu.menuId')
-			.innerJoin('menu.restaurant', 'restaurant', 'menu.restaurantId = restaurant.restaurantId')
-			.where('menuItem.itemId = :itemId', { itemId })
-			.andWhere('menu.isActive = true')
-			.andWhere('restaurant.restaurantId = :restaurantId', { restaurantId })
-			.getOne();
+		const item = await this.menuRepo.getItemByRestaurant(restaurantId, itemId);
 
 		if (!item) {
 			throw new ApplicationError(ErrMessages.menu.ItemNotBelongToActiveMenu, StatusCodes.BAD_REQUEST);
