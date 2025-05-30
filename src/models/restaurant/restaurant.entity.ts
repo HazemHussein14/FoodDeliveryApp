@@ -13,6 +13,7 @@ import { CartItem } from '../cart/cart-item.entity';
 import { AbstractEntity } from '../base.entity';
 import { Menu } from '../menu/menu.entity';
 import { Order } from '../order/order.entity';
+import { RestaurantSetting } from './restaurant-setting.entity';
 
 // Restaurant entity
 @Entity()
@@ -22,6 +23,9 @@ export class Restaurant extends AbstractEntity {
 
 	@Column({ unique: true })
 	userId!: number;
+
+	@Column()
+	restaurantSettingId!: number;
 
 	@Column({ type: 'varchar', length: 255 })
 	name!: string;
@@ -56,6 +60,10 @@ export class Restaurant extends AbstractEntity {
 	@OneToOne(() => User)
 	@JoinColumn({ name: 'user_id' })
 	user!: User;
+
+	@OneToOne(() => RestaurantSetting)
+	@JoinColumn({ name: 'restaurant_setting_id' })
+	restaurantSetting!: RestaurantSetting;
 
 	@OneToMany(() => Menu, (menu) => menu.restaurant)
 	menus!: Menu[];
