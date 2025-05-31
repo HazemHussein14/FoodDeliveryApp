@@ -55,6 +55,7 @@ export const ErrMessages = {
 		CartItemNotFound: 'Cart Item Not Found',
 		CartItemAlreadyExistOnCart: 'Item already exist on cart',
 		CartItemDoesNotBelongToCart: 'Cart Item Does Not Belong To The Specified Cart',
+    CartItemsDoesNotBelongToSameRestaurant: 'Cart Items Does Not Belong To Same Restaurant',
 		FailedToUpdateCartItem: 'Failed to update cart item',
 		FailedToUpdateCart: 'Failed to update cart',
 		CartIsEmpty: 'Cart is empty',
@@ -71,7 +72,8 @@ export const ErrMessages = {
 
 	item: {
 		ItemNotFound: 'Item Not Found',
-		ItemPriceNotFound: 'Item price not found'
+		ItemPriceNotFound: 'Item price not found',
+    ItemNotAvailable: 'Item is not available',
 	},
 
 	menu: {
