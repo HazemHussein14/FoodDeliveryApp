@@ -15,6 +15,7 @@ import { Customer } from '../customer/customer.entity';
 import { Address } from '../customer/address.entity';
 import { OrderItem } from './order-item.entity';
 import { Restaurant } from '../restaurant/restaurant.entity';
+import { OrderDto } from '../../dto/order.dto';
 
 @Entity()
 export class Order extends AbstractEntity {
@@ -94,4 +95,18 @@ export class Order extends AbstractEntity {
 
 	@OneToMany(() => OrderItem, (orderItem) => orderItem.order)
 	items!: OrderItem[];
+
+	static buildOrder(createOrderDto: OrderDto) {
+		const order = new Order();
+		order.customerId = createOrderDto.customerId;
+		order.restaurantId = createOrderDto.restaurantId;
+		order.deliveryAddressId = createOrderDto.deliveryAddressId;
+		order.customerInstructions = createOrderDto.customerInstructions;
+		order.totalItems = createOrderDto.totalItemsQty;
+		order.totalItemsAmount = createOrderDto.totalItemsAmount;
+		order.deliveryFees = createOrderDto.deliveryFees;
+		order.serviceFees = createOrderDto.serviceFees;
+		order.totalAmount = createOrderDto.totalAmount;
+		return order;
+	}
 }
