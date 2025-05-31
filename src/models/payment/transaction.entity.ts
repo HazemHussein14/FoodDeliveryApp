@@ -14,6 +14,7 @@ import { PaymentMethod } from './payment-method.entity';
 import { Order } from '../order/order.entity';
 import { PaymentStatus } from './payment-status.entity';
 import { TransactionDetail } from './transaction-detail.entity';
+import { TransactionDto } from '../../dto';
 
 @Entity()
 export class Transaction extends AbstractEntity {
@@ -34,8 +35,8 @@ export class Transaction extends AbstractEntity {
 	@JoinColumn({ name: 'payment_method_id' })
 	paymentMethod!: PaymentMethod;
 
-	@Column()
-	orderId!: number;
+	@Column({ nullable: true })
+	orderId!: number | null;
 
 	@ManyToOne(() => Order)
 	@JoinColumn({ name: 'order_id' })
@@ -62,4 +63,15 @@ export class Transaction extends AbstractEntity {
 
 	@OneToMany(() => TransactionDetail, (detail) => detail.transaction)
 	details!: TransactionDetail[];
+
+	static buildTransaction(transactionDto: TransactionDto): Transaction {
+		const transaction = new Transaction();
+		transaction.customerId = transactionDto.customerId;
+		transaction.paymentMethodId = transactionDto.paymentMethodId;
+		transaction.amount = transactionDto.amount;
+		transaction.orderId = null; // will be updated after order creation
+		transaction.paymentStatusId = 1; // pending status id
+		transaction.transactionCode = transactionDto.transactionCode;
+		return transaction;
+	}
 }
