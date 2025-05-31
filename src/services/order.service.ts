@@ -5,13 +5,14 @@ import { CartItem } from '../models';
 import logger from '../config/logger';
 import { CustomerService } from './customer.service';
 import { RestaurantService } from './restaurant.service';
+import { PlaceOrderDto } from '../dto/order.dto';
 
 export class OrderService {
 	private orderRepo = new OrderRepository();
 	private customerService = new CustomerService();
 	private restaurantService = new RestaurantService();
 
-	async placeOrder() {}
+	async placeOrder(placeOrderDto: PlaceOrderDto) {}
 
 	// Get order summary
 	async getCustomerOrderSummary() {}
