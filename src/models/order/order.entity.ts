@@ -107,6 +107,7 @@ export class Order extends AbstractEntity {
 		order.deliveryFees = createOrderDto.deliveryFees;
 		order.serviceFees = createOrderDto.serviceFees;
 		order.totalAmount = createOrderDto.totalAmount;
+		order.placedAt = createOrderDto.placedAt;
 		return order;
 	}
 }

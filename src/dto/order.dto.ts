@@ -43,6 +43,7 @@ export interface OrderDto {
 	serviceFees: number;
 	deliveryFees: number;
 	totalAmount: number;
+	placedAt: Date;
 }
 
 // Create Order Item Dto
