@@ -185,8 +185,13 @@ export class CartService {
 		return item;
 	}
 
-	private async getCartByCustomerId(customerId: number) {
-		return await this.cartRepo.getCartByCustomerId(customerId);
+	async getCartByCustomerId(customerId: number) {
+		const cart = await this.cartRepo.getCartByCustomerId(customerId);
+
+		if (!cart) {
+			throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
+		}
+		return cart;
 	}
 
 	private async getCurrentRestaurantOfCart(cartId: number) {

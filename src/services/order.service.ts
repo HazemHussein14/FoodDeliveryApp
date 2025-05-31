@@ -1,18 +1,41 @@
 import { OrderRepository } from '../repositories';
 import { ApplicationError, ErrMessages } from '../errors';
 import { StatusCodes } from 'http-status-codes';
-import { CartItem } from '../models';
+import { Cart, CartItem } from '../models';
 import logger from '../config/logger';
 import { CustomerService } from './customer.service';
 import { RestaurantService } from './restaurant.service';
 import { PlaceOrderDto } from '../dto/order.dto';
+import { Transactional } from 'typeorm-transactional';
+import { CartService } from './cart.service';
 
 export class OrderService {
 	private orderRepo = new OrderRepository();
 	private customerService = new CustomerService();
 	private restaurantService = new RestaurantService();
+	private cartService = new CartService();
 
-	async placeOrder(placeOrderDto: PlaceOrderDto) {}
+	@Transactional()
+	async placeOrder(placeOrderDto: PlaceOrderDto) {
+		// customer validations
+		const customer = await this.customerService.getCustomerByUserId(placeOrderDto.userId);
+		await this.customerService.validateDeliveryAddress(placeOrderDto.deliveryAddressId, customer.customerId);
+
+		// cart validations
+		const cart = await this.cartService.getCartByCustomerId(customer.customerId);
+		const { cartItems, restaurantId } = await this.validateCartForOrder(cart);
+
+		// restaurant validations
+		await this.validateRestaurantForOrder(restaurantId);
+
+		// calculate order totals
+		const orderTotals = await this.calculateOrderTotals(cartItems, restaurantId); // discount will be added later
+
+		return {
+			orderTotals,
+			cartItems
+		};
+	}
 
 	// Get order summary
 	async getCustomerOrderSummary() {}
@@ -88,6 +111,36 @@ export class OrderService {
 		}
 	}
 
+	private async validateCartForOrder(cart: Cart) {
+		// validate cart is not empty
+		const cartItems = cart.cartItems;
+		if (!cartItems || cartItems.length === 0) {
+			throw new ApplicationError(ErrMessages.cart.CartIsEmpty, StatusCodes.BAD_REQUEST);
+		}
+
+		// validate all items belong to same restaurant
+		const restaurantId = cartItems[0].restaurantId;
+		const allItemsBelongToSameRestaurant = cartItems.every((item) => item.restaurantId === restaurantId);
+		// TODO: Add better error message (show which items do not belong to same restaurant)
+		if (!allItemsBelongToSameRestaurant) {
+			throw new ApplicationError(ErrMessages.cart.CartItemsDoesNotBelongToSameRestaurant, StatusCodes.BAD_REQUEST);
+		}
+
+		// validate all items are available
+		const allItemsAreAvailable = cartItems.every((item) => item.item.isAvailable);
+		// TODO: Add better error message (show which items are not available)
+		if (!allItemsAreAvailable) {
+			throw new ApplicationError(ErrMessages.item.ItemNotAvailable, StatusCodes.BAD_REQUEST);
+		}
+
+		return { cartItems, restaurantId };
+	}
+
+	private async validateRestaurantForOrder(restaurantId: number) {
+		await this.restaurantService.validateRestaurantIsActive(restaurantId);
+		await this.restaurantService.validateRestaurantIsOpen(restaurantId);
+	}
+
 	// Manage Order Status Methods
 	validateOrderStatusTransition() {}
 
@@ -123,8 +176,8 @@ export class OrderService {
 		}
 
 		// calculate fees
-		const serviceFees = this.calculateServiceFees(totalItemsAmount, settings.serviceFeePercentage) / 100;
-		const deliveryFees = this.calculateDeliveryFees(totalItemsAmount, settings.deliveryFeePercentage) / 100;
+		const serviceFees = this.calculateServiceFees(totalItemsAmount, settings.serviceFeePercentage);
+		const deliveryFees = this.calculateDeliveryFees(totalItemsAmount, settings.deliveryFeePercentage);
 
 		// calculate total amount
 		const totalAmount = totalItemsAmount + deliveryFees + serviceFees - discountAmount;

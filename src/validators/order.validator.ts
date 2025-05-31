@@ -1,4 +1,5 @@
 import Joi from 'joi';
+import { PlaceOrderDto } from '../dto/order.dto';
 
 // Will be moved to shared validators
 export const idSchema = Joi.number().integer().positive().required().messages({
@@ -8,9 +9,9 @@ export const idSchema = Joi.number().integer().positive().required().messages({
 	'any.required': '{{#label}} is required'
 });
 
-export const placeOrderBodySchema = Joi.object({
-	customerId: idSchema.label('Customer ID'),
-	deliverAddressId: idSchema.label('Delivery address ID'),
+export const placeOrderBodySchema = Joi.object<PlaceOrderDto>({
+	userId: idSchema.label('User ID'),
+	deliveryAddressId: idSchema.label('Delivery address ID'),
 	paymentMethodId: idSchema.label('Payment method ID'),
 	customerInstructions: Joi.string().allow('').max(1000).optional()
 });

@@ -11,7 +11,7 @@ export class OrderController {
 		const placeOrderDto: PlaceOrderDto = req.validated?.body;
 
 		const order = await this.orderService.placeOrder(placeOrderDto);
-		sendResponse(res, StatusCodes.CREATED, 'Order Placed Successfully');
+		sendResponse(res, StatusCodes.CREATED, 'Order Placed Successfully', order);
 	}
 
 	async viewCustomerOrderSummary(req: Request, res: Response) {}

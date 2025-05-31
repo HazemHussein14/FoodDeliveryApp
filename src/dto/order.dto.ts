@@ -1,6 +1,6 @@
 // Place order DTO
 export interface PlaceOrderDto {
-	customerId: number; // from the auth middleware
+	userId: number; // from the auth middleware
 	deliveryAddressId: number;
 	paymentMethodId: number;
 	customerInstructions?: string;
