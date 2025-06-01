@@ -24,7 +24,7 @@ export class Restaurant extends AbstractEntity {
 	@Column({ unique: true })
 	userId!: number;
 
-	@Column()
+	@Column({ nullable: true })
 	restaurantSettingId!: number;
 
 	@Column({ type: 'varchar', length: 255 })

@@ -22,7 +22,19 @@ export class OrderController {
 
 	async viewCustomerOrderHistory(req: Request, res: Response) {}
 
-	async viewCustomerOrderDetails(req: Request, res: Response) {}
+	async viewCustomerOrderDetails(req: Request, res: Response): Promise<void> {
+	const { orderId } = req.validated?.params;
+	const userId = req.user?.userId;
+
+	if (!userId) {
+		sendResponse(res, StatusCodes.UNAUTHORIZED, 'Unauthorized: userId missing');
+		return;
+	}
+
+	const orderDetails = await this.orderService.getCustomerOrderDetails(+orderId, userId);
+	sendResponse(res, StatusCodes.OK, 'Order details fetched successfully', orderDetails);
+}
+
 
 	async viewRestaurantOrderDetails(req: Request, res: Response) {}
 

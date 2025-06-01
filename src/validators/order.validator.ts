@@ -8,3 +8,7 @@ export const placeOrderBodySchema = Joi.object<PlaceOrderDto>({
 	paymentMethodId: idSchema.label('Payment method ID'),
 	customerInstructions: Joi.string().allow('').max(1000).optional()
 });
+
+export const getOrderDetailsParamsSchema = Joi.object({
+	orderId: Joi.number().integer().min(1).required()
+}).required();

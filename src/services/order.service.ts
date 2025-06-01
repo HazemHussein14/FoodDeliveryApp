@@ -42,8 +42,23 @@ export class OrderService {
 
 	async getRestaurantOrderSummary() {}
 
-	// Get order details
-	async getCustomerOrderDetails() {}
+	// Get order details for a customer
+	async getCustomerOrderDetails(orderId: number, userId: number) {
+		const customer = await this.customerService.getCustomerByUserId(userId);
+		await this.validateOrderBelongsToCustomer(orderId, customer.customerId);
+
+		const order = await this.orderRepo.getOrderById(orderId);
+		if (!order) {
+			throw new ApplicationError(ErrMessages.order.OrderNotFound, StatusCodes.NOT_FOUND);
+		}
+
+		const orderItems = await this.orderRepo.getOrderItems(orderId);
+
+		return {
+			order,
+			orderItems
+		};
+	}
 
 	async getRestaurantOrderDetails() {}
 
@@ -99,6 +114,8 @@ export class OrderService {
 
 	async validateOrderBelongsToCustomer(orderId: number, customerId: number) {
 		const order = await this.orderRepo.getOrderByCustomerId(orderId, customerId);
+		console.log({ orderId, customerId });
+
 		if (!order) {
 			throw new ApplicationError(ErrMessages.auth.AccessDenied, StatusCodes.FORBIDDEN);
 		}
