@@ -36,9 +36,6 @@ export class Order extends AbstractEntity {
 	@JoinColumn({ name: 'restaurant_id' })
 	restaurant!: Restaurant;
 
-	@Column()
-	cartId!: number;
-
 	@ManyToOne(() => Cart)
 	@JoinColumn({ name: 'cart_id' })
 	cart!: Cart;
@@ -58,7 +55,7 @@ export class Order extends AbstractEntity {
 	deliveryAddress!: Address;
 
 	@Column({ type: 'text', default: '' })
-	customerInstructions!: string;
+	customerInstructions!: string | undefined;
 
 	@Column()
 	totalItems!: number;
@@ -81,11 +78,13 @@ export class Order extends AbstractEntity {
 	@Column({ type: 'timestamp' })
 	placedAt!: Date;
 
-	@Column({ type: 'timestamp' })
-	deliveredAt!: Date;
+	// Made nullable since orders won't have delivery date when first created
+	@Column({ type: 'timestamp', nullable: true })
+	deliveredAt?: Date | null;
 
-	@Column({ type: 'jsonb' })
-	cancellationInfo!: Record<string, any>;
+	// Made nullable since not all orders will have cancellation info
+	@Column({ type: 'jsonb', nullable: true })
+	cancellationInfo?: Record<string, any> | null;
 
 	@CreateDateColumn()
 	createdAt!: Date;
@@ -107,7 +106,12 @@ export class Order extends AbstractEntity {
 		order.deliveryFees = createOrderDto.deliveryFees;
 		order.serviceFees = createOrderDto.serviceFees;
 		order.totalAmount = createOrderDto.totalAmount;
+		order.orderStatusId = createOrderDto.orderStatusId;
+		order.discount = createOrderDto.discount;
 		order.placedAt = createOrderDto.placedAt;
+		// deliveredAt and cancellationInfo will be null initially
+		order.deliveredAt = null;
+		order.cancellationInfo = null;
 		return order;
 	}
 }

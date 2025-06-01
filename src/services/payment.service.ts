@@ -6,13 +6,18 @@ import { ProcessPaymentDto, TransactionDto } from '../dto';
 export class PaymentService {
 	private paymentRepository = new PaymentRepository();
 
-	async createPendingTransaction(transactionDto: TransactionDto) {
+	async createPendingTransaction(data: { customerId: number; amount: number; paymentMethodId: number }) {
+		const transactionDto: TransactionDto = {
+			customerId: data.customerId,
+			amount: data.amount,
+			paymentMethodId: data.paymentMethodId,
+			orderId: null,
+			paymentStatusId: 1, // pending status id
+			transactionCode: this.generateTransactionCode()
+		};
 		logger.info(`Creating pending transaction for customer ${transactionDto.customerId}`);
 
-		const transaction = Transaction.buildTransaction({
-			...transactionDto,
-			transactionCode: this.generateTransactionCode()
-		});
+		const transaction = Transaction.buildTransaction(transactionDto);
 
 		return await this.paymentRepository.createTransaction(transaction);
 	}
@@ -33,8 +38,7 @@ export class PaymentService {
 				await this.paymentRepository.updateTransactionStatus(transactionId, 2); // success status id
 				await this.paymentRepository.addTransactionDetail({
 					transactionId,
-					detailKey: { type: 'payment_gateway_response' },
-					detailValue: { ...paymentResult.data }
+					details: { ...paymentResult.data }
 				});
 			} else {
 				await this.markTransactionAsFailed(transactionId, paymentResult.error || 'Payment gateway error');
@@ -53,8 +57,7 @@ export class PaymentService {
 		await this.paymentRepository.updateTransactionStatus(transactionId, 3); // failure status id
 		await this.paymentRepository.addTransactionDetail({
 			transactionId,
-			detailKey: { type: 'failure_reason' },
-			detailValue: { reason }
+			details: { error: reason }
 		});
 	}
 
@@ -64,8 +67,8 @@ export class PaymentService {
 
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 
-		// simulate success/failure (90% success rate)
-		const success = Math.random() > 0.1;
+		// simulate success/failure (50% success rate)
+		const success = Math.random() > 0.5;
 
 		return {
 			success,

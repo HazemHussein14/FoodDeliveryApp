@@ -69,8 +69,8 @@ export class Transaction extends AbstractEntity {
 		transaction.customerId = transactionDto.customerId;
 		transaction.paymentMethodId = transactionDto.paymentMethodId;
 		transaction.amount = transactionDto.amount;
-		transaction.orderId = null; // will be updated after order creation
-		transaction.paymentStatusId = 1; // pending status id
+		transaction.orderId = transactionDto.orderId;
+		transaction.paymentStatusId = transactionDto.paymentStatusId;
 		transaction.transactionCode = transactionDto.transactionCode;
 		return transaction;
 	}

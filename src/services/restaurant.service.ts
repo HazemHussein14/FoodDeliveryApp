@@ -26,7 +26,7 @@ export class RestaurantService {
 		const restaurant = await this.getRestaurantById(restaurantId);
 
 		if (restaurant.status !== 'open') {
-			throw new ApplicationError(ErrMessages.restaurant.RestaurantNotAvailable, StatusCodes.BAD_REQUEST);
+			throw new ApplicationError(ErrMessages.restaurant.RestaurantNotOpen, StatusCodes.BAD_REQUEST);
 		}
 	}
 	async validateRestaurantIsActive(restaurantId: number) {

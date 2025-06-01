@@ -19,9 +19,14 @@ export class OrderRepository {
 		return await this.orderRepo.save(order);
 	}
 
+	async createOrderItems(orderItems: OrderItem[]): Promise<OrderItem[]> {
+		return await this.orderItemRepo.save(orderItems);
+	}
+
 	async getOrderById(orderId: number): Promise<Order | null> {
 		return await this.orderRepo.findOne({
-			where: { orderId }
+			where: { orderId },
+			relations: ['orderStatus', 'restaurant', 'deliveryAddress', 'items', 'items.menuItem.item']
 		});
 	}
 
