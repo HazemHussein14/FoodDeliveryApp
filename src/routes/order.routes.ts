@@ -24,5 +24,9 @@ OrderRouter.get(
 	controller.viewRestaurantOrderDetails.bind(controller)
 );
 
+// View customer's order history
+OrderRouter.get('/history/customer', isAuthenticated, controller.viewCustomerOrderHistory.bind(controller));
+
+OrderRouter.get('/history/restaurant', isAuthenticated, controller.viewRestaurantOrderHistory.bind(controller));
 
 export default OrderRouter;

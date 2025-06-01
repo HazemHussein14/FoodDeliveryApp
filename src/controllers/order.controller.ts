@@ -18,9 +18,29 @@ export class OrderController {
 
 	async viewRestaurantOrderSummary(req: Request, res: Response) {}
 
-	async viewRestaurantOrderHistory(req: Request, res: Response) {}
+	async viewCustomerOrderHistory(req: Request, res: Response): Promise<void> {
+		const userId = req.user?.userId;
 
-	async viewCustomerOrderHistory(req: Request, res: Response) {}
+		if (!userId) {
+			sendResponse(res, StatusCodes.UNAUTHORIZED, 'Unauthorized: userId missing');
+			return;
+		}
+
+		const orders = await this.orderService.getCustomerOrderHistory(userId);
+		sendResponse(res, StatusCodes.OK, 'Customer order history fetched successfully', orders);
+	}
+
+	async viewRestaurantOrderHistory(req: Request, res: Response): Promise<void> {
+		const userId = req.user?.userId;
+
+		if (!userId) {
+			sendResponse(res, StatusCodes.UNAUTHORIZED, 'Unauthorized: userId missing');
+			return;
+		}
+
+		const orders = await this.orderService.getRestaurantOrderHistory(userId);
+		sendResponse(res, StatusCodes.OK, 'Restaurant order history fetched successfully', orders);
+	}
 
 	async viewCustomerOrderDetails(req: Request, res: Response): Promise<void> {
 		const { orderId } = req.validated?.params;
