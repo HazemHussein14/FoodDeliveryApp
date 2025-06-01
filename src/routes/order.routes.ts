@@ -8,12 +8,21 @@ const OrderRouter = Router();
 const controller = new OrderController();
 
 OrderRouter.post('/place', validateRequest({ body: placeOrderBodySchema }), controller.placeOrder.bind(controller));
-// Route to get a customer's specific order by orderId
+// View customer's specific order
 OrderRouter.get(
-  '/customer/:orderId',
-  validateRequest({ params: getOrderDetailsParamsSchema }), // Validate orderId param
-  isAuthenticated, // Ensure user is authenticated
-  controller.viewCustomerOrderDetails.bind(controller)
+	'/customer/:orderId',
+	validateRequest({ params: getOrderDetailsParamsSchema }), // Validate orderId param
+	isAuthenticated, // Ensure user is authenticated
+	controller.viewCustomerOrderDetails.bind(controller)
 );
+
+// View restaurant's specific order
+OrderRouter.get(
+	'/restaurant/:orderId',
+	validateRequest({ params: getOrderDetailsParamsSchema }), // Validate orderId param
+	isAuthenticated, // Ensure user is authenticated
+	controller.viewRestaurantOrderDetails.bind(controller)
+);
+
 
 export default OrderRouter;

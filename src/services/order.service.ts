@@ -60,7 +60,30 @@ export class OrderService {
 		};
 	}
 
-	async getRestaurantOrderDetails() {}
+	async getRestaurantOrderDetails(orderId: number, userId: number) {
+		// Step 1: Get the restaurant by userId (owner of the order)
+		const restaurant = await this.restaurantService.getRestaurantByUserId(userId);
+
+		// Step 2: Validate that the order belongs to this restaurant
+		await this.validateOrderBelongsToRestaurant(orderId, restaurant.restaurantId);
+
+		// Step 3: Retrieve the order entity
+		const order = await this.orderRepo.getOrderById(orderId);
+		if (!order) {
+			throw new ApplicationError(ErrMessages.order.OrderNotFound, StatusCodes.NOT_FOUND);
+		}
+
+		// Step 4: Retrieve all order items including item details
+		const orderItems = await this.orderRepo.getOrderItems(orderId);
+
+		// Optional: Fetch payment or delivery info if needed
+
+		// Step 5: Return the detailed order
+		return {
+			order,
+			orderItems
+		};
+	}
 
 	// Get order history
 	async getCustomerOrderHistory() {}
