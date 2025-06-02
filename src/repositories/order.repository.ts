@@ -2,6 +2,22 @@ import { AppDataSource } from '../config/data-source';
 import { Order, OrderItem, OrderStatus } from '../models';
 import { Repository } from 'typeorm';
 
+interface GetOrdersOptions {
+	page: number;
+	limit: number;
+	status?: string;
+	startDate?: Date;
+	endDate?: Date;
+	sortBy?: string;
+	sortOrder?: 'ASC' | 'DESC';
+}
+
+interface CancelOrderData {
+	reason: string;
+	cancelledBy: string;
+	cancelledAt: Date;
+}
+
 export class OrderRepository {
 	private orderRepo: Repository<Order>;
 	private orderItemRepo: Repository<OrderItem>;
@@ -13,15 +29,43 @@ export class OrderRepository {
 		this.orderStatusRepo = AppDataSource.getRepository(OrderStatus);
 	}
 
-	// Order operations
-	async createOrder(data: Partial<Order>): Promise<Order> {
-		const order = this.orderRepo.create(data);
+	async createOrder(order: Order): Promise<Order> {
 		return await this.orderRepo.save(order);
+	}
+
+	async getOrders(options: GetOrdersOptions): Promise<{ orders: Order[]; total: number }> {
+		const { page, limit, status, startDate, endDate, sortBy = 'createdAt', sortOrder = 'DESC' } = options;
+		const skip = (page - 1) * limit;
+
+		const queryBuilder = this.orderRepo
+			.createQueryBuilder('order')
+			.leftJoinAndSelect('order.items', 'items')
+			.leftJoinAndSelect('order.orderStatus', 'status');
+
+		if (status) {
+			queryBuilder.andWhere('status.statusName = :status', { status });
+		}
+
+		if (startDate && endDate) {
+			queryBuilder.andWhere('order.createdAt BETWEEN :startDate AND :endDate', {
+				startDate,
+				endDate
+			});
+		}
+
+		const [orders, total] = await queryBuilder
+			.orderBy(`order.${sortBy}`, sortOrder)
+			.skip(skip)
+			.take(limit)
+			.getManyAndCount();
+
+		return { orders, total };
 	}
 
 	async getOrderById(orderId: number): Promise<Order | null> {
 		return await this.orderRepo.findOne({
-			where: { orderId }
+			where: { orderId },
+			relations: ['items', 'orderStatus']
 		});
 	}
 
@@ -55,22 +99,25 @@ export class OrderRepository {
 	}
 
 	async updateOrderStatus(orderId: number, orderStatusId: number): Promise<Order | null> {
-		await this.orderRepo.update(orderId, { orderStatusId });
-		return await this.getOrderById(orderId);
+		const order = await this.getOrderById(orderId);
+		if (!order) {
+			return null;
+		}
+
+		order.orderStatusId = orderStatusId;
+		return await this.orderRepo.save(order);
 	}
 
-	async cancelOrder(
-		orderId: number,
-		cancelledBy: 'customer' | 'restaurant' | 'system' | 'driver',
-		reason: string
-	): Promise<Order | null> {
+	async cancelOrder(orderId: number, cancelData: CancelOrderData): Promise<Order | null> {
 		const order = await this.getOrderById(orderId);
-		if (!order) return null;
+		if (!order) {
+			return null;
+		}
 
 		order.cancellationInfo = {
-			cancelledBy,
-			reason,
-			cancelledAt: new Date()
+			reason: cancelData.reason,
+			cancelledBy: cancelData.cancelledBy,
+			cancelledAt: cancelData.cancelledAt
 		};
 
 		return await this.orderRepo.save(order);
