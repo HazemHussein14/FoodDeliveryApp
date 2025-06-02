@@ -219,9 +219,19 @@ export class OrderService {
 	}
 
 	// Get order history
-	async getCustomerOrderHistory() {}
+	async getCustomerOrderHistory(userId: number) {
+		const customer = await this.customerService.getCustomerByUserId(userId);
+		const orders = await this.orderRepo.getAllOrdersByCustomerId(customer.customerId);
 
-	async getRestaurantOrderHistory() {}
+		return orders;
+	}
+
+	async getRestaurantOrderHistory(userId: number) {
+		const restaurant = await this.restaurantService.getRestaurantByUserId(userId);
+		const orders = await this.orderRepo.getAllOrdersByRestaurantId(restaurant.restaurantId);
+
+		return orders;
+	}
 
 	// Update order status
 	async updateOrderStatus(orderId: number, request: UpdateOrderStatusDto) {

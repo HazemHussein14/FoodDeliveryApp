@@ -59,5 +59,9 @@ OrderRouter.get('/summary', controller.getOrdersSummary.bind(controller));
 
 ///orders/:orderId/cancel-by-restaurant
 OrderRouter.post('/:orderId/cancel-by-restaurant', controller.cancelOrderByRestaurant.bind(controller));
+// View customer's order history
+OrderRouter.get('/history/customer', isAuthenticated, controller.viewCustomerOrderHistory.bind(controller));
+
+OrderRouter.get('/history/restaurant', isAuthenticated, controller.viewRestaurantOrderHistory.bind(controller));
 
 export default OrderRouter;
