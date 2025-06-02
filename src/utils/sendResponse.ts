@@ -20,8 +20,8 @@ export function sendResponse<T>(
 	message: string,
 	data?: T,
 	extra?: Record<string, any>
-): Response<ApiResponse<T>> {
-	return res.status(statusCode).json({
+): void {
+	res.status(statusCode).json({
 		requestTime: new Date().toISOString(),
 		status: getStatusFromCode(statusCode),
 		message,
@@ -41,6 +41,6 @@ export function sendPaginatedResponse<T>(
 		pageSize: number;
 		totalPages: number;
 	}
-): Response<ApiResponse<T>> {
-	return sendResponse(res, statusCode, message, data, pagination);
+): void {
+	sendResponse(res, statusCode, message, data, pagination);
 }

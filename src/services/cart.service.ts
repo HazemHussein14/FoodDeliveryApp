@@ -1,7 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
 import { ErrMessages, ApplicationError } from '../errors';
-import { AppDataSource } from '../config/data-source';
-import { Cart, CartItem, Customer, MenuItem } from '../models';
+import { Cart, CartItem, Customer } from '../models';
 import logger from '../config/logger';
 import { CartRepository, CustomerRepository, MenuRepository } from '../repositories';
 import { CartAddItemDto, CartItemResponse, CartResponse } from '../dto/cart.dto';
@@ -50,7 +49,10 @@ export class CartService {
 		this.validateCartItemBelongsToCart(cartItem.cartId, cartId);
 	}
 
-	private async validateCartBelongsToCustomer(userId: number, cartId?: number): Promise<{ customer: Customer; cart: Cart }> {
+	private async validateCartBelongsToCustomer(
+		userId: number,
+		cartId?: number
+	): Promise<{ customer: Customer; cart: Cart }> {
 		const customer = await this.getCustomerByUserId(userId);
 
 		let cart: Cart | null;
@@ -183,8 +185,13 @@ export class CartService {
 		return item;
 	}
 
-	private async getCartByCustomerId(customerId: number) {
-		return await this.cartRepo.getCartByCustomerId(customerId);
+	async getCartByCustomerId(customerId: number) {
+		const cart = await this.cartRepo.getCartByCustomerId(customerId);
+
+		if (!cart) {
+			throw new ApplicationError(ErrMessages.cart.CartNotFound, StatusCodes.NOT_FOUND);
+		}
+		return cart;
 	}
 
 	private async getCurrentRestaurantOfCart(cartId: number) {

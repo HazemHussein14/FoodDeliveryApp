@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, Jo
 import { AbstractEntity } from '../base.entity';
 import { Order } from './order.entity';
 import { MenuItem } from '../menu/menu-item.entity';
+import { OrderItemDto } from '../../dto/order.dto';
 
 @Entity()
 export class OrderItem extends AbstractEntity {
@@ -33,4 +34,14 @@ export class OrderItem extends AbstractEntity {
 
 	@CreateDateColumn()
 	createdAt!: Date;
+
+	static buildOrderItem(OrderItemDto: OrderItemDto) {
+		const orderItem = new OrderItem();
+		orderItem.orderId = OrderItemDto.orderId;
+		orderItem.menuItemId = OrderItemDto.menuItemId;
+		orderItem.quantity = OrderItemDto.quantity;
+		orderItem.itemPrice = OrderItemDto.itemPrice;
+		orderItem.totalPrice = OrderItemDto.totalPrice;
+		return orderItem;
+	}
 }

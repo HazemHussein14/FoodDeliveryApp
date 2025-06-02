@@ -17,20 +17,20 @@ export class RestaurantRepository {
 	async getRestaurantById(restaurantId: number): Promise<Restaurant | null> {
 		return await this.restaurantRepo.findOne({
 			where: { restaurantId },
-			relations: ['user']
+			relations: ['restaurantSetting']
 		});
 	}
 
 	async getRestaurantByUserId(userId: number): Promise<Restaurant | null> {
 		return await this.restaurantRepo.findOne({
 			where: { userId },
-			relations: ['user']
+			relations: ['restaurantSetting']
 		});
 	}
 
 	async getAllRestaurants(): Promise<Restaurant[]> {
 		return await this.restaurantRepo.find({
-			relations: ['user'],
+			relations: ['restaurantSetting'],
 			where: { isActive: true }
 		});
 	}
@@ -63,8 +63,7 @@ export class RestaurantRepository {
 
 	async getRestaurantsByStatus(status: 'open' | 'busy' | 'pause' | 'closed'): Promise<Restaurant[]> {
 		return await this.restaurantRepo.find({
-			where: { status, isActive: true },
-			relations: ['user']
+			where: { status, isActive: true }
 		});
 	}
 }

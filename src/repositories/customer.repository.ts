@@ -1,14 +1,16 @@
 import { AppDataSource } from '../config/data-source';
-import { Customer, Address } from '../models';
+import { Customer, Address, CustomerAddress } from '../models';
 import { Repository } from 'typeorm';
 
 export class CustomerRepository {
 	private customerRepo: Repository<Customer>;
 	private addressRepo: Repository<Address>;
+	private customerAddressRepo: Repository<CustomerAddress>;
 
 	constructor() {
 		this.customerRepo = AppDataSource.getRepository(Customer);
 		this.addressRepo = AppDataSource.getRepository(Address);
+		this.customerAddressRepo = AppDataSource.getRepository(CustomerAddress);
 	}
 
 	// Customer operations
@@ -43,6 +45,12 @@ export class CustomerRepository {
 	async getAddressById(addressId: number): Promise<Address | null> {
 		return await this.addressRepo.findOne({
 			where: { addressId }
+		});
+	}
+
+	async getCustomerAddress(addressId: number, customerId: number): Promise<CustomerAddress | null> {
+		return await this.customerAddressRepo.findOne({
+			where: { addressId, customerId }
 		});
 	}
 
