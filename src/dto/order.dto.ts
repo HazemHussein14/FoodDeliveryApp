@@ -54,3 +54,7 @@ export interface OrderItemDto {
 	itemPrice: number;
 	totalPrice: number;
 }
+
+export interface UpdateOrderStatusDto {
+	statusId: number;
+}

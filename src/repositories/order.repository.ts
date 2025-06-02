@@ -33,7 +33,8 @@ export class OrderRepository {
 
 	async getOrderByCustomerId(orderId: number, customerId: number): Promise<Order | null> {
 		return await this.orderRepo.findOne({
-			where: { customerId, orderId }
+			where: { customerId, orderId },
+			relations: [ 'orderStatus' ]
 		});
 	}
 
@@ -123,5 +124,11 @@ export class OrderRepository {
 		const orderItems = await this.getOrderItems(orderId);
 		const totalItems = orderItems.reduce((total, item) => total + item.quantity, 0);
 		await this.updateOrder(orderId, { totalItems });
+	}
+
+	async getOrderStatusByName(statusName: string) : Promise<OrderStatus | null> {
+		return await this.orderStatusRepo.findOne({
+			where: { statusName }
+		});
 	}
 }

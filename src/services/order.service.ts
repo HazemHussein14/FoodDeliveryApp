@@ -5,9 +5,10 @@ import { Cart, CartItem } from '../models';
 import logger from '../config/logger';
 import { CustomerService } from './customer.service';
 import { RestaurantService } from './restaurant.service';
-import { PlaceOrderDto } from '../dto/order.dto';
+import { PlaceOrderDto, UpdateOrderStatusDto } from '../dto/order.dto';
 import { Transactional } from 'typeorm-transactional';
 import { CartService } from './cart.service';
+import { UserService } from './user.service';
 
 export class OrderService {
 	private orderRepo = new OrderRepository();
@@ -53,10 +54,41 @@ export class OrderService {
 	async getRestaurantOrderHistory() {}
 
 	// Update order status
-	async updateOrderStatus() {}
+	async updateOrderStatus(orderId: number, request: UpdateOrderStatusDto) {
+		const order = await this.orderRepo.getOrderById(orderId);
+		if (!order) {
+			throw new ApplicationError(ErrMessages.order.OrderNotFound, StatusCodes.NOT_FOUND);
+		}
+
+		const orderStatus = await this.orderRepo.getOrderStatusById(request.statusId);
+		if (!orderStatus) {
+			throw new ApplicationError(ErrMessages.order.OrderStatusNotFound, StatusCodes.NOT_FOUND);
+		}
+		
+		await this.orderRepo.updateOrderStatus(orderId, request.statusId);
+	}
 
 	// Cancel order
-	async cancelOrderByCustomer() {}
+	async cancelOrderByCustomer(userId: number, orderId: number) {
+		const customer = await this.customerService.getCustomerByUserId(userId);
+		if (!customer) {
+			throw new ApplicationError(ErrMessages.customer.CustomerNotFound, StatusCodes.NOT_FOUND);
+		}
+
+		const order = await this.orderRepo.getOrderByCustomerId(orderId, customer.customerId);
+		if(!order) {
+			throw new ApplicationError(ErrMessages.order.OrderNotFound, StatusCodes.NOT_FOUND);
+		}
+
+		const orderStatusName = (await this.orderRepo.getOrderStatusById(order.orderStatusId))?.statusName;
+		const cancelledStatus = await this.orderRepo.getOrderStatusByName("cancelled");
+		if (orderStatusName === 'confirmed' || orderStatusName === 'preparing' || orderStatusName === 'ready_for_pickup') {
+			this.orderRepo.updateOrderStatus(orderId, cancelledStatus!.orderStatusId);
+		}
+		else {
+			throw new ApplicationError(ErrMessages.order.CancellationUnAlllowed, StatusCodes.EXPECTATION_FAILED)
+		}
+	}
 
 	async cancelOrderByRestaurant() {}
 
