@@ -45,3 +45,7 @@ export const cancelOrderByCustomerBodySchema = Joi.object({
 export const cancelOrderByCustomerParamsSchema = Joi.object({
 	orderId: idSchema.label('Order Id')
 });
+
+export const getOrderDetailsParamsSchema = Joi.object({
+	orderId: Joi.number().integer().min(1).required()
+}).required();

@@ -82,7 +82,7 @@ export class OrderRepository {
 	async getOrderByCustomerId(orderId: number, customerId: number): Promise<Order | null> {
 		return await this.orderRepo.findOne({
 			where: { customerId, orderId },
-			relations: [ 'orderStatus' ]
+			relations: ['orderStatus']
 		});
 	}
 
@@ -177,7 +177,7 @@ export class OrderRepository {
 		await this.updateOrder(orderId, { totalItems });
 	}
 
-	async getOrderStatusByName(statusName: string) : Promise<OrderStatus | null> {
+	async getOrderStatusByName(statusName: string): Promise<OrderStatus | null> {
 		return await this.orderStatusRepo.findOne({
 			where: { statusName }
 		});

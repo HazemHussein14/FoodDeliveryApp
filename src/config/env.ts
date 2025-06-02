@@ -55,7 +55,8 @@ export const config = {
 		ttl: envVars.REDIS_DEFAULT_TTL
 	},
 	jwt: {
-		secret: process.env.JWT_SECRET || 'your-default-secret',
-		expiresIn: '1d'
+		secret: envVars.JWT_SECRET,
+		accessTTL: envVars.JWT_ACCESS_EXPIRE_IN, // '1y'
+		refreshTTL: envVars.JWT_REFRESH_EXPIRE_IN
 	}
 };

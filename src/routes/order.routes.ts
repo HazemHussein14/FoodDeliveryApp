@@ -7,7 +7,8 @@ import {
 	updateOrderStatusBodySchema,
 	updateOrderStatusParamsSchema,
 	cancelOrderByCustomerBodySchema,
-	cancelOrderByCustomerParamsSchema
+	cancelOrderByCustomerParamsSchema,
+	getOrderDetailsParamsSchema
 } from '../validators';
 
 const OrderRouter = Router();
@@ -21,6 +22,22 @@ const controller = new OrderController();
  */
 
 OrderRouter.post('/place', validateRequest({ body: placeOrderBodySchema }), controller.placeOrder.bind(controller));
+
+// View customer's specific order
+OrderRouter.get(
+	'/customer/:orderId',
+	validateRequest({ params: getOrderDetailsParamsSchema }), // Validate orderId param
+	isAuthenticated, // Ensure user is authenticated
+	controller.viewCustomerOrderDetails.bind(controller)
+);
+
+// View restaurant's specific order
+OrderRouter.get(
+	'/restaurant/:orderId',
+	validateRequest({ params: getOrderDetailsParamsSchema }), // Validate orderId param
+	isAuthenticated, // Ensure user is authenticated
+	controller.viewRestaurantOrderDetails.bind(controller)
+);
 
 OrderRouter.put(
 	'/:orderId/status',

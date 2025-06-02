@@ -1,11 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import { sendResponse } from '../utils/sendResponse';
 import { config } from '../config/env';
 import { ApplicationError } from '../errors';
 
 export interface AuthorizedUser {
 	userId: number;
+	roles: string[];
+	actorType: string; // e.g., 'customer', 'restaurant_user'
+	actorId: number; // ID of the actor (e.g., customer or restaurant user)
 }
 
 declare module 'express-serve-static-core' {
