@@ -180,10 +180,7 @@ export class OrderService {
 		const customer = await this.customerService.getCustomerByUserId(userId);
 		await this.validateOrderBelongsToCustomer(orderId, customer.customerId);
 
-		const order = await this.orderRepo.getOrderById(orderId);
-		if (!order) {
-			throw new ApplicationError(ErrMessages.order.OrderNotFound, StatusCodes.NOT_FOUND);
-		}
+		const order = await this.getOrderById(orderId);
 
 		const orderItems = await this.orderRepo.getOrderItems(orderId);
 
@@ -201,10 +198,7 @@ export class OrderService {
 		await this.validateOrderBelongsToRestaurant(orderId, restaurant.restaurantId);
 
 		// Step 3: Retrieve the order entity
-		const order = await this.orderRepo.getOrderById(orderId);
-		if (!order) {
-			throw new ApplicationError(ErrMessages.order.OrderNotFound, StatusCodes.NOT_FOUND);
-		}
+		const order = await this.getOrderById(orderId);
 
 		// Step 4: Retrieve all order items including item details
 		const orderItems = await this.orderRepo.getOrderItems(orderId);
@@ -219,6 +213,8 @@ export class OrderService {
 	}
 
 	// Get order history
+	// TODO: use validateOrderAccess here
+	// TODO: add filters and pagination
 	async getCustomerOrderHistory(userId: number) {
 		const customer = await this.customerService.getCustomerByUserId(userId);
 		const orders = await this.orderRepo.getAllOrdersByCustomerId(customer.customerId);
@@ -226,6 +222,8 @@ export class OrderService {
 		return orders;
 	}
 
+	// TODO: use validateOrderAccess here
+	// TODO: add filters and pagination
 	async getRestaurantOrderHistory(userId: number) {
 		const restaurant = await this.restaurantService.getRestaurantByUserId(userId);
 		const orders = await this.orderRepo.getAllOrdersByRestaurantId(restaurant.restaurantId);
@@ -235,11 +233,13 @@ export class OrderService {
 
 	// Update order status
 	async updateOrderStatus(orderId: number, request: UpdateOrderStatusDto) {
+		// use getOrderById here
 		const order = await this.orderRepo.getOrderById(orderId);
 		if (!order) {
 			throw new ApplicationError(ErrMessages.order.OrderNotFound, StatusCodes.NOT_FOUND);
 		}
 
+		// TODO: Add getOrderStatusById method and use it here
 		const orderStatus = await this.orderRepo.getOrderStatusById(request.statusId);
 		if (!orderStatus) {
 			throw new ApplicationError(ErrMessages.order.OrderStatusNotFound, StatusCodes.NOT_FOUND);
@@ -251,10 +251,12 @@ export class OrderService {
 	// Cancel order
 	async cancelOrderByCustomer(userId: number, orderId: number) {
 		const customer = await this.customerService.getCustomerByUserId(userId);
+		// No need to check if customer exists, customer service will throw error if no customer
 		if (!customer) {
 			throw new ApplicationError(ErrMessages.customer.CustomerNotFound, StatusCodes.NOT_FOUND);
 		}
 
+		// TODO: use getOrderById method
 		const order = await this.orderRepo.getOrderByCustomerId(orderId, customer.customerId);
 		if (!order) {
 			throw new ApplicationError(ErrMessages.order.OrderNotFound, StatusCodes.NOT_FOUND);
@@ -275,12 +277,14 @@ export class OrderService {
 	@Transactional()
 	async cancelOrderByRestaurant(restaurantId: number, orderId: number, cancellationReason: string) {
 		// 1. Authenticate restaurant
+		// TODO: use restaurant service
 		const restaurant = await this.restaurantRepo.getRestaurantById(restaurantId);
 		if (!restaurant) {
 			throw new ApplicationError(ErrMessages.restaurant.RestaurantNotFound, StatusCodes.UNAUTHORIZED);
 		}
 
 		// 2. Validate order
+		// TODO: use validateOrderBelongsToRestaurant
 		const order = await this.orderRepo.getOrderById(orderId);
 		if (!order) {
 			throw new ApplicationError('Order not found', StatusCodes.NOT_FOUND);
@@ -288,6 +292,7 @@ export class OrderService {
 		if (order.restaurantId !== restaurantId) {
 			throw new ApplicationError('Unauthorized: Order belongs to different restaurant', StatusCodes.FORBIDDEN);
 		}
+
 		if (NON_CANCELLABLE_STATES.includes(order.orderStatus.statusName)) {
 			throw new ApplicationError(
 				`Order cannot be cancelled in current state: ${order.orderStatus.statusName}`,
