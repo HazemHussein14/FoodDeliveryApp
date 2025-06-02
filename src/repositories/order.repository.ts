@@ -33,6 +33,10 @@ export class OrderRepository {
 		return await this.orderRepo.save(order);
 	}
 
+	async createOrderItems(orderItems: OrderItem[]): Promise<OrderItem[]> {
+		return await this.orderItemRepo.save(orderItems);
+	}
+
 	async getOrders(options: GetOrdersOptions): Promise<{ orders: Order[]; total: number }> {
 		const { page, limit, status, startDate, endDate, sortBy = 'createdAt', sortOrder = 'DESC' } = options;
 		const skip = (page - 1) * limit;
@@ -65,7 +69,7 @@ export class OrderRepository {
 	async getOrderById(orderId: number): Promise<Order | null> {
 		return await this.orderRepo.findOne({
 			where: { orderId },
-			relations: ['items', 'orderStatus']
+			relations: ['orderStatus', 'restaurant', 'deliveryAddress', 'items', 'items.menuItem.item']
 		});
 	}
 

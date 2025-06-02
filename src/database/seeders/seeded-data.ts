@@ -285,8 +285,6 @@ const orderItemSeedData: SeedData<OrderItem> = {
 	})
 };
 
-
-
 const seedData = [
 	// users
 	userTypesData,

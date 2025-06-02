@@ -55,7 +55,7 @@ export const ErrMessages = {
 		CartItemNotFound: 'Cart Item Not Found',
 		CartItemAlreadyExistOnCart: 'Item already exist on cart',
 		CartItemDoesNotBelongToCart: 'Cart Item Does Not Belong To The Specified Cart',
-    CartItemsDoesNotBelongToSameRestaurant: 'Cart Items Does Not Belong To Same Restaurant',
+		CartItemsDoesNotBelongToSameRestaurant: 'Cart Items Does Not Belong To Same Restaurant',
 		FailedToUpdateCartItem: 'Failed to update cart item',
 		FailedToUpdateCart: 'Failed to update cart',
 		CartIsEmpty: 'Cart is empty',
@@ -67,13 +67,14 @@ export const ErrMessages = {
 	restaurant: {
 		RestaurantNotFound: 'Restaurant not found',
 		RestaurantNotAvailable:
-			'Sorry restaurant cannot process your order right now, try again later or choose different one'
+			'Sorry restaurant cannot process your order right now, try again later or choose different one',
+		RestaurantNotOpen: 'Restaurant is not open'
 	},
 
 	item: {
 		ItemNotFound: 'Item Not Found',
 		ItemPriceNotFound: 'Item price not found',
-    ItemNotAvailable: 'Item is not available',
+		ItemNotAvailable: 'Item is not available'
 	},
 
 	menu: {

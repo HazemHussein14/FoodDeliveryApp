@@ -53,6 +53,15 @@ export class MenuRepository {
 		});
 	}
 
+	async getMenuItemByItemAndRestaurant(itemId: number, restaurantId: number) {
+		return await this.menuItemRepo
+			.createQueryBuilder('mi')
+			.innerJoin('mi.menu', 'm')
+			.where('mi.itemId = :itemId', { itemId })
+			.andWhere('m.restaurantId = :restaurantId', { restaurantId })
+			.getOne();
+	}
+
 	async removeMenuItem(menuId: number, itemId: number): Promise<void> {
 		await this.menuItemRepo.delete({ menuId, itemId });
 	}

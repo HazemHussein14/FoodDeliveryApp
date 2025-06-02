@@ -9,8 +9,14 @@ export interface PlaceOrderDto {
 export interface PlaceOrderResponse {
 	orderId: number;
 	status: string;
+	totalItemsQty: number;
+	totalItemsAmount: number;
+	serviceFees: number;
+	deliveryFees: number;
+	discount: number;
 	totalAmount: number;
 	estimatedDeliveryTime?: string;
+	customerInstructions?: string;
 	paymentStatus: string;
 	restaurant: {
 		id: number;
@@ -37,11 +43,13 @@ export interface OrderDto {
 	customerId: number;
 	restaurantId: number;
 	deliveryAddressId: number;
-	customerInstructions: string;
+	orderStatusId: number;
+	customerInstructions?: string;
 	totalItemsQty: number;
 	totalItemsAmount: number;
 	serviceFees: number;
 	deliveryFees: number;
+	discount: number;
 	totalAmount: number;
 	placedAt: Date;
 }
