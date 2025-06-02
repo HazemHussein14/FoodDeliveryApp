@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { PlaceOrderDto } from '../dto/order.dto';
+import { PlaceOrderDto, UpdateOrderStatusDto } from '../dto/order.dto';
 import { idSchema } from './shared.validator';
 
 export const orderIdSchema = Joi.object({
@@ -28,4 +28,20 @@ export const orderQuerySchema = Joi.object({
 	endDate: Joi.date().iso().min(Joi.ref('startDate')),
 	sortBy: Joi.string().valid('createdAt', 'totalAmount', 'placedAt'),
 	sortOrder: Joi.string().valid('ASC', 'DESC').default('DESC')
+});
+
+export const updateOrderStatusBodySchema = Joi.object<UpdateOrderStatusDto>({
+	statusId: idSchema.label('Order status ID')
+});
+
+export const updateOrderStatusParamsSchema = Joi.object({
+	orderId: idSchema.label('Order ID')
+});
+
+export const cancelOrderByCustomerBodySchema = Joi.object({
+	userId: idSchema.label('User Id')
+});
+
+export const cancelOrderByCustomerParamsSchema = Joi.object({
+	orderId: idSchema.label('Order Id')
 });

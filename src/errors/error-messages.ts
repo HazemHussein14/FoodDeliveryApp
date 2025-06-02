@@ -88,6 +88,7 @@ export const ErrMessages = {
 	order: {
 		OrderNotFound: 'Order not found',
 		OrderStatusNotFound: 'Order status not found',
-		OrderItemNotFound: 'Order item not found'
+		OrderItemNotFound: 'Order item not found',
+		CancellationUnAlllowed: 'Order cant be cancelled'
 	}
 };
