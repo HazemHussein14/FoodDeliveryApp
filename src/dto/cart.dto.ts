@@ -11,7 +11,6 @@ export class FindCartItemFilter {
 	cartItemId?: number;
 }
 
-
 export class UpdateQuantityPayload {
 	cartItemId!: number;
 	quantity!: number;

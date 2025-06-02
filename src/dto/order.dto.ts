@@ -9,14 +9,14 @@ export interface PlaceOrderDto {
 export interface PlaceOrderResponse {
 	orderId: number;
 	status: string;
-  totalItemsQty: number;
-  totalItemsAmount: number;
-  serviceFees: number;
-  deliveryFees: number;
-  discount: number;
+	totalItemsQty: number;
+	totalItemsAmount: number;
+	serviceFees: number;
+	deliveryFees: number;
+	discount: number;
 	totalAmount: number;
 	estimatedDeliveryTime?: string;
-  customerInstructions?: string;
+	customerInstructions?: string;
 	paymentStatus: string;
 	restaurant: {
 		id: number;

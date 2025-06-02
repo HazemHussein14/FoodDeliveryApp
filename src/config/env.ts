@@ -54,7 +54,7 @@ export const config = {
 		port: envVars.REDIS_PORT,
 		ttl: envVars.REDIS_DEFAULT_TTL
 	},
-  jwt: {
+	jwt: {
 		secret: process.env.JWT_SECRET || 'your-default-secret',
 		expiresIn: '1d'
 	}
