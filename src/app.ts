@@ -2,6 +2,7 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import compression from 'compression';
 import ApiRouter from './routes/api.routes';
 import { addRequestTimeMiddleware, ErrorHandler, NotFoundHandler } from './middlewares';
 import { defaultRateLimiter } from './config/ratelimiter';
@@ -13,6 +14,7 @@ export const createApp = (): Application => {
 
 	// register middlewares
 	app.use(addRequestTimeMiddleware); // add request time
+	app.use(compression());
 	app.use(express.json());
 	app.use(express.urlencoded({ extended: true }));
 	app.use(cors());
