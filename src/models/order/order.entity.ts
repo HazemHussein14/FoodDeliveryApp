@@ -95,6 +95,11 @@ export class Order extends AbstractEntity {
 	@OneToMany(() => OrderItem, (orderItem) => orderItem.order)
 	items!: OrderItem[];
 
+	/**
+	 * Build an Order object from an OrderDto.
+	 * @param createOrderDto an OrderDto
+	 * @returns an Order object
+	 */
 	static buildOrder(createOrderDto: OrderDto) {
 		const order = new Order();
 		order.customerId = createOrderDto.customerId;
