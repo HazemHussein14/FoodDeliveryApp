@@ -45,7 +45,7 @@ export class PaymentRepository {
 	}
 
 	async updateTransactionStatus(transactionId: number, paymentStatusId: number): Promise<Transaction | null> {
-		await this.transactionRepo.update(transactionId, { paymentStatusId });
+		await this.transactionRepo.update(transactionId, { transactionStatusId: paymentStatusId });
 		return await this.getTransactionById(transactionId);
 	}
 
