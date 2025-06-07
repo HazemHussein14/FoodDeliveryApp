@@ -12,7 +12,7 @@ export class PaymentService {
 			amount: data.amount,
 			paymentMethodId: data.paymentMethodId,
 			orderId: null,
-			paymentStatusId: 1, // pending status id
+			transactionStatusId: 1, // pending status id
 			transactionCode: this.generateTransactionCode()
 		};
 		logger.info(`Creating pending transaction for customer ${transactionDto.customerId}`);

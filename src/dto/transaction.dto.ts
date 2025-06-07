@@ -3,7 +3,7 @@ export interface TransactionDto {
 	paymentMethodId: number;
 	orderId: number | null;
 	amount: number;
-	paymentStatusId: number;
+	transactionStatusId: number;
 	transactionCode: string;
 }
 

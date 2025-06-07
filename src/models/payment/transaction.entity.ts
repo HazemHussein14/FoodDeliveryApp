@@ -46,10 +46,10 @@ export class Transaction extends AbstractEntity {
 	amount!: number;
 
 	@Column()
-	paymentStatusId!: number;
+	transactionStatusId!: number;
 
 	@ManyToOne(() => PaymentStatus, (paymentStatus) => paymentStatus.transactions)
-	@JoinColumn({ name: 'payment_status_id' })
+	@JoinColumn({ name: 'transaction_status_id' })
 	paymentStatus!: PaymentStatus;
 
 	@Column({ type: 'varchar', length: 100 })
@@ -64,13 +64,20 @@ export class Transaction extends AbstractEntity {
 	@OneToMany(() => TransactionDetail, (detail) => detail.transaction)
 	details!: TransactionDetail[];
 
+	/**
+	 * Builds a new Transaction instance from the given TransactionDto.
+	 *
+	 * @param transactionDto - An object containing transaction details.
+	 * @returns A new Transaction instance populated with details from the transactionDto.
+	 */
+
 	static buildTransaction(transactionDto: TransactionDto): Transaction {
 		const transaction = new Transaction();
 		transaction.customerId = transactionDto.customerId;
 		transaction.paymentMethodId = transactionDto.paymentMethodId;
 		transaction.amount = transactionDto.amount;
 		transaction.orderId = transactionDto.orderId;
-		transaction.paymentStatusId = transactionDto.paymentStatusId;
+		transaction.transactionStatusId = transactionDto.transactionStatusId;
 		transaction.transactionCode = transactionDto.transactionCode;
 		return transaction;
 	}
