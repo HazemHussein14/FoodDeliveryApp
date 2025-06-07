@@ -3,12 +3,12 @@ import { AbstractEntity } from '../base.entity';
 import { Transaction } from './transaction.entity';
 
 @Entity()
-export class PaymentStatus extends AbstractEntity {
+export class TransactionStatus extends AbstractEntity {
 	@PrimaryGeneratedColumn()
-	paymentStatusId!: number;
+	transactionStatusId!: number;
 
-	@Column({ type: 'varchar', length: 20 })
-	statusName!: string;
+	@Column({ type: 'varchar', length: 30 })
+	status!: string;
 
 	@Column({ default: true })
 	isActive!: boolean;
@@ -19,6 +19,6 @@ export class PaymentStatus extends AbstractEntity {
 	@UpdateDateColumn()
 	updatedAt!: Date;
 
-	@OneToMany(() => Transaction, (transaction) => transaction.paymentStatus)
+	@OneToMany(() => Transaction, (transaction) => transaction.transactionStatus)
 	transactions!: Transaction[];
 }

@@ -11,7 +11,7 @@ import {
 	OrderItem,
 	OrderStatus,
 	PaymentMethod,
-	PaymentStatus,
+	TransactionStatus,
 	Restaurant,
 	RestaurantSetting,
 	Role,
@@ -161,13 +161,13 @@ const paymentMethodSeedData: SeedData<PaymentMethod> = {
 };
 
 // Seed data for PaymentStatus
-const paymentStatusSeedData: SeedData<PaymentStatus> = {
-	entity: PaymentStatus,
+const transactionStatusSeedData: SeedData<TransactionStatus> = {
+	entity: TransactionStatus,
 	data: [
-		{ statusName: 'pending', isActive: true },
-		{ statusName: 'paid', isActive: true },
-		{ statusName: 'failed', isActive: true },
-		{ statusName: 'refunded', isActive: true }
+		{ status: 'pending', isActive: true },
+		{ status: 'paid', isActive: true },
+		{ status: 'failed', isActive: true },
+		{ status: 'refunded', isActive: true }
 	]
 };
 
@@ -304,7 +304,7 @@ const seedData = [
 
 	// payment methods
 	paymentMethodSeedData,
-	paymentStatusSeedData,
+	transactionStatusSeedData,
 
 	// order related
 	orderStatusSeedData,
