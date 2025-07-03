@@ -43,4 +43,21 @@ export class Cart extends AbstractEntity {
 		cart.customerId = customerId;
 		return cart;
 	}
+
+	/**
+	 * Calculates the total quantity of items and the total amount for the given cart items.
+	 *
+	 * @param cartItems - Array of CartItem instances
+	 * @returns An object containing totalItemsQty (total quantity of all items) and
+	 *          totalItemsAmount (total amount for all items, rounded to two decimal places)
+	 */
+	static calculateTotalItemsAmountAndQty(cartItems: CartItem[]) {
+		let totalItemsQty = 0;
+		let totalItemsAmount = 0;
+		for (const item of cartItems) {
+			totalItemsAmount += item.calculateTotalPrice();
+			totalItemsQty += item.quantity;
+		}
+		return { totalItemsQty, totalItemsAmount: parseFloat(totalItemsAmount.toFixed(2)) };
+	}
 }

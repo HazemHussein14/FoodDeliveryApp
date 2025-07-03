@@ -11,8 +11,9 @@ import {
 	OrderItem,
 	OrderStatus,
 	PaymentMethod,
-	PaymentStatus,
+	TransactionStatus,
 	Restaurant,
+	RestaurantSetting,
 	Role,
 	User,
 	UserRole,
@@ -108,12 +109,23 @@ const itemSeedData: SeedData<Item> = {
 	}))
 };
 
+// * Restaurant Settings
+
+const restaurantSettingSeedData: SeedData<RestaurantSetting> = {
+	entity: RestaurantSetting,
+	data: Array.from({ length: 10 }).map((_, index) => ({
+		serviceFeePercentage: parseFloat(faker.number.float({ min: 1, max: 10, fractionDigits: 2 }).toFixed(2)),
+		deliveryFeePercentage: parseFloat(faker.number.float({ min: 5, max: 15, fractionDigits: 2 }).toFixed(2))
+	}))
+};
+
 // * restaurants
 
 const restaurantSeedData: SeedData<Restaurant> = {
 	entity: Restaurant,
 	data: Array.from({ length: 10 }).map((_, index) => ({
 		userId: index + 1,
+		restaurantSettingId: index + 1, // Link to restaurant setting
 		name: faker.company.name(),
 		logoUrl: faker.image.url(),
 		bannerUrl: faker.image.url(),
@@ -149,13 +161,13 @@ const paymentMethodSeedData: SeedData<PaymentMethod> = {
 };
 
 // Seed data for PaymentStatus
-const paymentStatusSeedData: SeedData<PaymentStatus> = {
-	entity: PaymentStatus,
+const transactionStatusSeedData: SeedData<TransactionStatus> = {
+	entity: TransactionStatus,
 	data: [
-		{ statusName: 'pending', isActive: true },
-		{ statusName: 'paid', isActive: true },
-		{ statusName: 'failed', isActive: true },
-		{ statusName: 'refunded', isActive: true }
+		{ status: 'pending', isActive: true },
+		{ status: 'paid', isActive: true },
+		{ status: 'failed', isActive: true },
+		{ status: 'refunded', isActive: true }
 	]
 };
 
@@ -283,7 +295,8 @@ const seedData = [
 	customerAddressSeedData,
 	userRoleSeedData,
 
-	// menu
+	// restaurant and menu
+	restaurantSettingSeedData,
 	restaurantSeedData,
 	menuSeedData,
 	itemSeedData,
@@ -291,7 +304,7 @@ const seedData = [
 
 	// payment methods
 	paymentMethodSeedData,
-	paymentStatusSeedData,
+	transactionStatusSeedData,
 
 	// order related
 	orderStatusSeedData,
