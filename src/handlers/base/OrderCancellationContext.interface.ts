@@ -1,4 +1,4 @@
-// This file is deprecated. Use OrderCancellationContext from OrderCancellationContext.ts instead.
+// This file defines the canonical OrderCancellationContext interface for order cancellation handlers.
 import { Restaurant } from '../../models/restaurant/restaurant.entity';
 import { Order } from '../../models/order/order.entity';
 

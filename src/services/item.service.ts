@@ -26,7 +26,7 @@ export class ItemService {
     return {} as ItemResponseDto;
   }
 
-  async updateItemImage(itemId: number, image: File): Promise<string> {
+  async updateItemImage(itemId: number, image?: File): Promise<string> {
     // Image update handling (placeholder)
     return '';
   }

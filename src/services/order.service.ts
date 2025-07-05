@@ -11,7 +11,7 @@ import { CartService } from './cart.service';
 import { PaymentService } from './payment.service';
 import NodeCache from 'node-cache';
 import { OrderCancellationHandlerFactory } from '../handlers/factories/OrderCancellationHandlerFactory';
-import { OrderCancellationContext } from '../handlers/base/OrderCancellationContext';
+import { OrderCancellationContext } from '../handlers/base/OrderCancellationContext.interface';
 
 // Placeholder notification and analytics functions
 async function notifyDriver(driverId: number, payload: any) {

@@ -1,5 +1,5 @@
 import { OrderCancellationHandler } from './OrderCancellationHandler.interface';
-import { OrderCancellationContext } from './OrderCancellationContext';
+import { OrderCancellationContext } from './OrderCancellationContext.interface';
 
 export abstract class BaseOrderCancellationHandler implements OrderCancellationHandler {
   private nextHandler?: OrderCancellationHandler;

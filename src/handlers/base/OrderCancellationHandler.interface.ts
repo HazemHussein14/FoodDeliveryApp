@@ -1,4 +1,4 @@
-import { OrderCancellationContext } from './OrderCancellationContext';
+import { OrderCancellationContext } from './OrderCancellationContext.interface';
 
 export interface OrderCancellationHandler {
   setNext(handler: OrderCancellationHandler): OrderCancellationHandler;

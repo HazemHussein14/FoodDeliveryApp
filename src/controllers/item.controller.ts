@@ -47,7 +47,7 @@ router.put('/items/:itemId/image', isAuthenticated, isRestaurantOwner, async (re
     const itemId = parseInt(req.params.itemId, 10);
     // In a real app, use multer or similar to handle file upload
     // const image = req.file as any; // Placeholder
-    const imagePath = await itemService.updateItemImage(itemId, null);
+    const imagePath = await itemService.updateItemImage(itemId, undefined);
     sendResponse(res, 200, 'Item image updated', { imagePath });
   } catch (err: any) {
     sendResponse(res, 400, err.message || 'Item image update failed');
