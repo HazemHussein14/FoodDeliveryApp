@@ -1,9 +1,11 @@
+import { TransactionStatusEnum } from '../enums';
+
 export interface TransactionDto {
 	customerId: number;
 	paymentMethodId: number;
 	orderId: number | null;
 	amount: number;
-	paymentStatusId: number;
+	transactionStatus: TransactionStatusEnum;
 	transactionCode: string;
 }
 

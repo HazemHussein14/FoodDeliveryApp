@@ -30,7 +30,7 @@ export * from './customer/customer-address.entity';
 // Payment related entities
 export * from './payment/payment-method.entity';
 export * from './payment/payment-method-config.entity';
-export * from './payment/payment-status.entity';
+export * from './payment/transaction-status.entity';
 export * from './payment/transaction.entity';
 export * from './payment/transaction-detail.entity';
 

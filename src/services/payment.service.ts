@@ -1,10 +1,10 @@
 import { PaymentRepository } from '../repositories';
-import { Transaction } from '../models';
 import logger from '../config/logger';
 import { ProcessPaymentDto, TransactionDto } from '../dto';
+import { TransactionStatusEnum } from '../enums';
 
 export class PaymentService {
-	private paymentRepository = new PaymentRepository();
+	private readonly paymentRepository = new PaymentRepository();
 
 	async createPendingTransaction(data: { customerId: number; amount: number; paymentMethodId: number }) {
 		const transactionDto: TransactionDto = {
@@ -12,14 +12,12 @@ export class PaymentService {
 			amount: data.amount,
 			paymentMethodId: data.paymentMethodId,
 			orderId: null,
-			paymentStatusId: 1, // pending status id
+			transactionStatus: TransactionStatusEnum.PENDING,
 			transactionCode: this.generateTransactionCode()
 		};
 		logger.info(`Creating pending transaction for customer ${transactionDto.customerId}`);
 
-		const transaction = Transaction.buildTransaction(transactionDto);
-
-		return await this.paymentRepository.createTransaction(transaction);
+		return await this.paymentRepository.createTransaction(transactionDto);
 	}
 
 	async processPayment(transactionId: number, processPaymentDto: ProcessPaymentDto) {
@@ -35,13 +33,13 @@ export class PaymentService {
 			const paymentResult = await this.processPaymentGateway(processPaymentDto.amount);
 
 			if (paymentResult.success) {
-				await this.paymentRepository.updateTransactionStatus(transactionId, 2); // success status id
+				await this.paymentRepository.updateTransactionStatus(transactionId, TransactionStatusEnum.PAID);
 				await this.paymentRepository.addTransactionDetail({
 					transactionId,
 					details: { ...paymentResult.data }
 				});
 			} else {
-				await this.markTransactionAsFailed(transactionId, paymentResult.error || 'Payment gateway error');
+				await this.markTransactionAsFailed(transactionId, paymentResult.error ?? 'Payment gateway error');
 			}
 
 			return paymentResult;
@@ -54,7 +52,7 @@ export class PaymentService {
 	}
 
 	async markTransactionAsFailed(transactionId: number, reason: string) {
-		await this.paymentRepository.updateTransactionStatus(transactionId, 3); // failure status id
+		await this.paymentRepository.updateTransactionStatus(transactionId, TransactionStatusEnum.FAILED); // failure status id
 		await this.paymentRepository.addTransactionDetail({
 			transactionId,
 			details: { error: reason }
