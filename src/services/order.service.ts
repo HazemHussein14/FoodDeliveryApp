@@ -10,6 +10,8 @@ import { Transactional } from 'typeorm-transactional';
 import { CartService } from './cart.service';
 import { PaymentService } from './payment.service';
 import NodeCache from 'node-cache';
+import { OrderCancellationHandlerFactory } from '../handlers/factories/OrderCancellationHandlerFactory';
+import { OrderCancellationContext } from '../handlers/base/OrderCancellationContext';
 
 // Placeholder notification and analytics functions
 async function notifyDriver(driverId: number, payload: any) {
@@ -276,121 +278,27 @@ export class OrderService {
 	 */
 	@Transactional()
 	async cancelOrderByRestaurant(restaurantId: number, orderId: number, cancellationReason: string) {
-		// 1. Authenticate restaurant
-		// TODO: use restaurant service
-		const restaurant = await this.restaurantRepo.getRestaurantById(restaurantId);
-		if (!restaurant) {
-			throw new ApplicationError(ErrMessages.restaurant.RestaurantNotFound, StatusCodes.UNAUTHORIZED);
-		}
+		const context: OrderCancellationContext = {
+			restaurantId,
+			orderId,
+			cancellationReason
+		};
 
-		// 2. Validate order
-		// TODO: use validateOrderBelongsToRestaurant
-		const order = await this.orderRepo.getOrderById(orderId);
-		if (!order) {
-			throw new ApplicationError('Order not found', StatusCodes.NOT_FOUND);
-		}
-		if (order.restaurantId !== restaurantId) {
-			throw new ApplicationError('Unauthorized: Order belongs to different restaurant', StatusCodes.FORBIDDEN);
-		}
+		const handlerChain = OrderCancellationHandlerFactory.createCancellationChain({
+			restaurantRepo: this.restaurantRepo,
+			orderRepo: this.orderRepo
+		});
 
-		if (NON_CANCELLABLE_STATES.includes(order.orderStatus.statusName)) {
-			throw new ApplicationError(
-				`Order cannot be cancelled in current state: ${order.orderStatus.statusName}`,
-				StatusCodes.BAD_REQUEST
-			);
-		}
-		if (!VALID_REASONS.includes(cancellationReason)) {
-			throw new ApplicationError('Invalid cancellation reason', StatusCodes.BAD_REQUEST);
-		}
-
-		// 3. Begin transaction
 		try {
-			// Update order state and cancellation info
-			order.orderStatus.statusName = 'cancelled';
-			order.cancellationInfo = {
-				cancelledBy: 'restaurant',
-				reason: cancellationReason,
-				cancelledAt: new Date()
-			};
-			await this.orderRepo.updateOrder(orderId, {
-				orderStatusId: order.orderStatus.orderStatusId,
-				cancellationInfo: order.cancellationInfo
-			});
-
-			// Log event (placeholder)
-			logger.info({
-				type: 'ORDER_CANCELLED',
-				orderId,
-				restaurantId,
-				reason: cancellationReason,
-				timestamp: new Date()
-			});
-
-			// Notify driver if assigned
-			if ((order as any).driverId) {
-				await notifyDriver((order as any).driverId, {
-					type: 'ORDER_CANCELLED',
-					orderId,
-					message: 'Order has been cancelled by restaurant'
-				});
-				// Optionally update driver status here
-			}
-
-			// Calculate and process refund
-			const refundAmount = this.calculateRefundAmount(order);
-			let refundStatus = 'NONE';
-			let refundId = null;
-			if (refundAmount > 0) {
-				const refundResult = await processRefund(order.customerId, (order as any).paymentId, refundAmount);
-				if (refundResult.success) {
-					refundStatus = 'PROCESSED';
-					refundId = refundResult.refundId;
-				} else {
-					await queueManualRefund(orderId, refundAmount, refundResult.error || 'Unknown error');
-					refundStatus = 'PENDING';
-				}
-				// Store refund info in cancellationInfo for now (extend schema in future)
-				order.cancellationInfo = {
-					...order.cancellationInfo,
-					refundAmount,
-					refundStatus,
-					refundId
-				};
-				await this.orderRepo.updateOrder(orderId, {
-					cancellationInfo: order.cancellationInfo
-				});
-			}
-
-			// Parallel notifications
-			await Promise.all([
-				notifyCustomer(order.customerId, {
-					type: 'ORDER_CANCELLED',
-					orderId,
-					reason: 'Restaurant had to cancel your order',
-					refundAmount,
-					estimatedRefundTime: '3-5 business days'
-				}),
-				notifySupportTeam({
-					type: 'ORDER_CANCELLED_BY_RESTAURANT',
-					orderId,
-					restaurantId,
-					reason: cancellationReason
-				}),
-				updateAnalytics('restaurant_cancellation', {
-					restaurantId,
-					reason: cancellationReason,
-					orderValue: order.totalAmount
-				})
-			]);
-
+			await handlerChain.handle(context);
 			return {
 				message: 'Order cancelled successfully',
-				refundAmount,
-				refundStatus
+				refundAmount: context.refundAmount || 0,
+				refundStatus: context.refundStatus || 'NONE'
 			};
-		} catch (err: any) {
-			logger.error('Order cancellation failed', err);
-			throw new ApplicationError('Cancellation failed: ' + err.message, StatusCodes.INTERNAL_SERVER_ERROR);
+		} catch (error) {
+			logger.error('Order cancellation failed', error);
+			throw error;
 		}
 	}
 
