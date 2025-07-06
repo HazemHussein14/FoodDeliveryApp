@@ -1,15 +1,24 @@
 import { Router } from 'express';
 import { validateRequest } from '../middlewares/validate-request.middleware';
 import { MenuController } from '../controllers';
-import { createMenuBodySchema, restaurantParamSchema } from '../validators';
+import { addItemsToMenuBodySchema, createMenuBodySchema, menuParamSchema, restaurantParamSchema } from '../validators';
 const RestaurantRouter = Router();
 
 const menuController = new MenuController();
 
 RestaurantRouter.post(
 	'/:restaurantId/menus',
-	validateRequest({ body: createMenuBodySchema, params: restaurantParamSchema }),
+	validateRequest({
+		body: createMenuBodySchema,
+		params: restaurantParamSchema
+	}),
 	menuController.createRestaurantMenu.bind(menuController)
+);
+
+RestaurantRouter.post(
+	'/:restaurantId/menus/:menuId/items',
+	validateRequest({ body: addItemsToMenuBodySchema, params: menuParamSchema }),
+	menuController.addItemsToRestaurantMenu.bind(menuController)
 );
 
 RestaurantRouter.get(
