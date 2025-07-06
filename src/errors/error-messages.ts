@@ -49,7 +49,7 @@ export const ErrMessages = {
 
 	// Custom Errors
 	// todo: add custom errors here
-		cart: {
+	cart: {
 		CartNotFound: 'Cart Not Found',
 		CartAlreadyExists: 'Cart Already Exists',
 		CartItemNotFound: 'Cart Item Not Found',
@@ -79,7 +79,10 @@ export const ErrMessages = {
 
 	menu: {
 		NoActiveMenuFound: 'Sorry there is no active menu for current restaurant',
-		ItemNotBelongToActiveMenu: 'Item does not belong to an active menu of this restaurant'
+		ItemNotBelongToActiveMenu: 'Item does not belong to an active menu of this restaurant',
+		MenuNotFound: 'Menu not found',
+		MenuWithSameTitleExists: 'Menu with same title already exists',
+    RestaurantMenuLimitReached: 'You have reached the maximum number of menus for this restaurant'
 	},
 	customer: {
 		CustomerNotFound: 'Customer not found'
