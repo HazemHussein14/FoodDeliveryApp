@@ -1,11 +1,11 @@
 import { AppDataSource } from '../config/data-source';
 import { Menu, MenuItem, Item } from '../models';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 export class MenuRepository {
-	private menuRepo: Repository<Menu>;
-	private menuItemRepo: Repository<MenuItem>;
-	private itemRepo: Repository<Item>;
+	private readonly menuRepo: Repository<Menu>;
+	private readonly menuItemRepo: Repository<MenuItem>;
+	private readonly itemRepo: Repository<Item>;
 
 	constructor() {
 		this.menuRepo = AppDataSource.getRepository(Menu);
@@ -25,6 +25,18 @@ export class MenuRepository {
 		});
 	}
 
+	async getMenuByRestaurantIdAndMenuTitle(restaurantId: number, menuTitle: string): Promise<Menu | null> {
+		return await this.menuRepo.findOne({
+			where: { menuTitle, restaurantId }
+		});
+	}
+
+	async getMenuCountByRestaurantId(restaurantId: number): Promise<number> {
+		return await this.menuRepo.count({
+			where: { restaurantId, isDeleted: false }
+		});
+	}
+
 	async getAllMenus(): Promise<Menu[]> {
 		return await this.menuRepo.find({
 			where: { isActive: true }
@@ -40,10 +52,24 @@ export class MenuRepository {
 		await this.menuRepo.update(menuId, { isActive: false });
 	}
 
+	async getMenuItemsByItemIds(menuId: number, itemIds: number[]): Promise<MenuItem[]> {
+		return await this.menuItemRepo.find({
+			where: {
+				menuId,
+				itemId: In(itemIds)
+			}
+		});
+	}
+
 	// Menu Item operations
 	async addMenuItem(data: Partial<MenuItem>): Promise<MenuItem> {
 		const menuItem = this.menuItemRepo.create(data);
 		return await this.menuItemRepo.save(menuItem);
+	}
+
+	async createMenuItems(data: Partial<MenuItem>[]): Promise<MenuItem[]> {
+		const menuItems = this.menuItemRepo.create(data);
+		return await this.menuItemRepo.save(menuItems);
 	}
 
 	async getMenuItems(menuId: number): Promise<MenuItem[]> {
