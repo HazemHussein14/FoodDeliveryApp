@@ -25,6 +25,15 @@ export class MenuRepository {
 		});
 	}
 
+	async getMenuWithItemsDetails(menuId: number): Promise<Menu | null> {
+		return await this.menuRepo
+			.createQueryBuilder('menu')
+			.leftJoinAndSelect('menu.menuItems', 'menuItem')
+			.leftJoinAndSelect('menuItem.item', 'item')
+			.where('menu.menuId = :menuId', { menuId })
+			.getOne();
+	}
+
 	async getMenuByRestaurantIdAndMenuTitle(restaurantId: number, menuTitle: string): Promise<Menu | null> {
 		return await this.menuRepo.findOne({
 			where: { menuTitle, restaurantId }
@@ -101,6 +110,15 @@ export class MenuRepository {
 	async getItemById(itemId: number): Promise<Item | null> {
 		return await this.itemRepo.findOne({
 			where: { itemId }
+		});
+	}
+
+	async getAvailableItemsByIds(itemIds: number[]): Promise<Item[]> {
+		return await this.itemRepo.find({
+			where: {
+				itemId: In(itemIds),
+				isAvailable: true
+			}
 		});
 	}
 

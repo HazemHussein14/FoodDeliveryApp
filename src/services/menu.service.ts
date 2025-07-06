@@ -2,9 +2,10 @@ import { StatusCodes } from 'http-status-codes';
 import { ErrMessages, ApplicationError } from '../errors';
 import { Transactional } from 'typeorm-transactional';
 import { MenuRepository } from '../repositories';
-import { Menu } from '../models';
-import { CreateMenuRequestDTO, MenuResponseDTO } from '../dto/menu.dto';
+import { Menu, MenuItem } from '../models';
+import { AddItemsToMenuRequestDTO, CreateMenuRequestDTO, MenuItemResponseDTO, MenuResponseDTO } from '../dto/menu.dto';
 import { RestaurantService } from './restaurant.service';
+import logger from '../config/logger';
 
 const MAX_MENUS_PER_RESTAURANT = 3;
 
@@ -42,7 +43,117 @@ export class MenuService {
 		return this.buildMenuResponse(savedMenu);
 	}
 
+	@Transactional()
+	async addItemsToRestaurantMenu(request: AddItemsToMenuRequestDTO) {
+		const { menuId, items, restaurantId, userId } = request;
+
+		const restaurant = await this.restaurantService.getRestaurantById(restaurantId);
+		this.restaurantService.validateUserIsOwner(restaurant, userId);
+
+		const menu = await this.getMenuWithItemsDetails(menuId);
+		this.validateMenuBelongsToRestaurant(menu, restaurantId);
+
+		const itemIds = this.extractItemIds(items);
+		this.validateExistingMenuItems(menu.menuItems, itemIds);
+		this.validateItemsAreAvailable(itemIds);
+
+		const menuItems = MenuItem.buildMenuItems(menuId, items);
+		await this.menuRepo.createMenuItems(menuItems);
+		const updatedMenuItems = await this.menuRepo.getMenuItems(menuId);
+		return this.buildMenuItemResponse(updatedMenuItems);
+	}
+
 	// Helper Methods
+
+	/**
+	 * Gets a menu by its ID.
+	 *
+	 * @param menuId - The ID of the menu to get.
+	 * @throws {ApplicationError} If the menu is not found.
+	 * @returns The requested menu.
+	 */
+	async getMenuById(menuId: number): Promise<Menu> {
+		const menu = await this.menuRepo.getMenuById(menuId);
+		if (!menu) {
+			throw new ApplicationError(ErrMessages.menu.MenuNotFound, StatusCodes.NOT_FOUND);
+		}
+		return menu;
+	}
+
+	async getMenuWithItemsDetails(menuId: number) {
+		const menu = await this.menuRepo.getMenuWithItemsDetails(menuId);
+		if (!menu) {
+			throw new ApplicationError(ErrMessages.menu.MenuNotFound, StatusCodes.NOT_FOUND);
+		}
+		return menu;
+	}
+
+	/**
+	 * Extracts item IDs from an array of items.
+	 *
+	 * @param items - The array of items from which to extract item IDs.
+	 * @returns An array of item IDs.
+	 */
+
+	private extractItemIds(items: any[]): number[] {
+		return items.map((item) => item.itemId);
+	}
+
+	/**
+	 * Validates that a menu belongs to a given restaurant.
+	 *
+	 * @param menu - The menu to check.
+	 * @param restaurantId - The ID of the restaurant to check against.
+	 * @throws ApplicationError if the menu does not belong to the restaurant.
+	 */
+	private validateMenuBelongsToRestaurant(menu: Menu, restaurantId: number) {
+		if (menu.restaurantId !== restaurantId) {
+			throw new ApplicationError(ErrMessages.menu.MenuNotBelongToRestaurant, StatusCodes.BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Validates that all the item IDs passed in are available for the restaurant.
+	 *
+	 * @param itemIds - The item IDs to validate.
+	 *
+	 * @throws {ApplicationError} If any of the items are not available.
+	 */
+	private async validateItemsAreAvailable(itemIds: number[]) {
+		const availableItems = await this.menuRepo.getAvailableItemsByIds(itemIds);
+		const availableItemIds = this.extractItemIds(availableItems);
+
+		const unavailableItemIds = itemIds.filter((id) => !availableItemIds.includes(id));
+
+		if (unavailableItemIds.length > 0) {
+			throw new ApplicationError(
+				`${ErrMessages.item.ItemNotAvailable}: ${unavailableItemIds.join(', ')}`,
+				StatusCodes.BAD_REQUEST
+			);
+		}
+	}
+
+	/**
+	 * Validates that the items to be added to the menu are not already on the menu.
+	 *
+	 * @param menuItems - The menu items that are currently on the menu.
+	 * @param itemIds - The item IDs to add to the menu.
+	 *
+	 * @throws {ApplicationError} If any of the new items already exist on the menu.
+	 */
+	private validateExistingMenuItems(menuItems: MenuItem[], itemIds: number[]) {
+		const existingMenuItemIds = this.extractItemIds(menuItems);
+		const newItemIdsExists = itemIds.filter((id) => existingMenuItemIds.includes(id));
+
+		logger.info(`existingMenuItemIds: ${existingMenuItemIds}`);
+		logger.info(`newItemIdsExists: ${newItemIdsExists}`);
+		if (newItemIdsExists.length > 0) {
+			throw new ApplicationError(
+				`${ErrMessages.menu.MenuItemAlreadyExists}: ${newItemIdsExists.join(', ')}`,
+				StatusCodes.BAD_REQUEST
+			);
+		}
+	}
 
 	/**
 	 * Validates that a menu title is unique across a restaurant's menus.
@@ -80,5 +191,19 @@ export class MenuService {
 			createdAt: menu.createdAt.toISOString(),
 			updatedAt: menu.updatedAt.toISOString()
 		};
+	}
+
+	private buildMenuItemResponse(menuItems: MenuItem[]): MenuItemResponseDTO[] {
+		return menuItems.map((menuItem) => ({
+			menuId: menuItem.menuId,
+			itemId: menuItem.itemId,
+			menuItemId: menuItem.menuItemId,
+			name: menuItem.item.name,
+			description: menuItem.item.description,
+			price: menuItem.item.price,
+			imagePath: menuItem.item.imagePath,
+			energyValCal: menuItem.item.energyValCal,
+			isAvailable: menuItem.item.isAvailable
+		}));
 	}
 }
