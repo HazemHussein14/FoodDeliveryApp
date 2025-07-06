@@ -3,7 +3,7 @@ import { Restaurant } from '../models';
 import { Repository } from 'typeorm';
 
 export class RestaurantRepository {
-	private restaurantRepo: Repository<Restaurant>;
+	private readonly restaurantRepo: Repository<Restaurant>;
 
 	constructor() {
 		this.restaurantRepo = AppDataSource.getRepository(Restaurant);
@@ -15,10 +15,12 @@ export class RestaurantRepository {
 	}
 
 	async getRestaurantById(restaurantId: number): Promise<Restaurant | null> {
-		return await this.restaurantRepo.findOne({
-			where: { restaurantId },
-			relations: ['restaurantSetting']
-		});
+		return await this.restaurantRepo
+			.createQueryBuilder('restaurant')
+			.leftJoinAndSelect('restaurant.restaurantSetting', 'restaurantSetting')
+			.leftJoinAndSelect('restaurant.menus', 'menus')
+			.where('restaurant.restaurant_id = :restaurantId', { restaurantId })
+			.getOne();
 	}
 
 	async getRestaurantByUserId(userId: number): Promise<Restaurant | null> {
