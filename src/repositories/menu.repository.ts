@@ -52,6 +52,16 @@ export class MenuRepository {
 		});
 	}
 
+	async getRestaurantMenus(restaurantId: number): Promise<Menu[]> {
+		return await this.menuRepo
+			.createQueryBuilder('menu')
+			.leftJoinAndSelect('menu.menuItems', 'menuItem')
+			.leftJoinAndSelect('menuItem.item', 'item')
+			.where('menu.restaurantId = :restaurantId', { restaurantId })
+			.andWhere('menu.isDeleted = :isDeleted', { isDeleted: false })
+			.getMany();
+	}
+
 	async updateMenu(menuId: number, data: Partial<Menu>): Promise<Menu | null> {
 		await this.menuRepo.update(menuId, data);
 		return await this.getMenuById(menuId);

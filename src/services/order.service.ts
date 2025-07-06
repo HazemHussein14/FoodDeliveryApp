@@ -470,7 +470,7 @@ export class OrderService {
 	}
 
 	private async validateRestaurantForOrder(restaurantId: number) {
-		await this.restaurantService.validateRestaurantIsActive(restaurantId);
+		// await this.restaurantService.validateRestaurantIsActive(restaurantId);
 		await this.restaurantService.validateRestaurantIsOpen(restaurantId);
 	}
 
