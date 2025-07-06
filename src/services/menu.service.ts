@@ -50,7 +50,7 @@ export class MenuService {
 		const restaurant = await this.restaurantService.getRestaurantById(restaurantId);
 		this.restaurantService.validateUserIsOwner(restaurant, userId);
 
-		const menu = await this.getMenuWithItemsDetails(menuId);
+		const menu = await this.getRestaurantMenuById(menuId);
 		this.validateMenuBelongsToRestaurant(menu, restaurantId);
 
 		const itemIds = this.extractItemIds(items);
@@ -72,20 +72,17 @@ export class MenuService {
 	 * @throws {ApplicationError} If the menu is not found.
 	 * @returns The requested menu.
 	 */
-	async getMenuById(menuId: number): Promise<Menu> {
-		const menu = await this.menuRepo.getMenuById(menuId);
+	async getRestaurantMenuById(menuId: number): Promise<Menu> {
+		const menu = await this.menuRepo.getMenuWithItemsDetails(menuId);
 		if (!menu) {
 			throw new ApplicationError(ErrMessages.menu.MenuNotFound, StatusCodes.NOT_FOUND);
 		}
 		return menu;
 	}
 
-	async getMenuWithItemsDetails(menuId: number) {
-		const menu = await this.menuRepo.getMenuWithItemsDetails(menuId);
-		if (!menu) {
-			throw new ApplicationError(ErrMessages.menu.MenuNotFound, StatusCodes.NOT_FOUND);
-		}
-		return menu;
+	async getRestaurantMenus(restaurantId: number): Promise<MenuResponseDTO[]> {
+		const menus = await this.menuRepo.getRestaurantMenus(restaurantId);
+		return menus.map((menu) => this.buildMenuResponse(menu));
 	}
 
 	/**
@@ -145,8 +142,6 @@ export class MenuService {
 		const existingMenuItemIds = this.extractItemIds(menuItems);
 		const newItemIdsExists = itemIds.filter((id) => existingMenuItemIds.includes(id));
 
-		logger.info(`existingMenuItemIds: ${existingMenuItemIds}`);
-		logger.info(`newItemIdsExists: ${newItemIdsExists}`);
 		if (newItemIdsExists.length > 0) {
 			throw new ApplicationError(
 				`${ErrMessages.menu.MenuItemAlreadyExists}: ${newItemIdsExists.join(', ')}`,

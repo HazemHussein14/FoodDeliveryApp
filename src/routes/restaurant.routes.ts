@@ -22,9 +22,15 @@ RestaurantRouter.post(
 );
 
 RestaurantRouter.get(
-	'/menu',
-	// validateRequest({ body: menuController.getRestaurantMenuSchema }),
-	menuController.getRestaurantMenu.bind(menuController)
+	'/:restaurantId/menus/:menuId',
+	validateRequest({ params: menuParamSchema }),
+	menuController.getRestaurantMenuById.bind(menuController)
+);
+
+RestaurantRouter.get(
+	'/:restaurantId/menus',
+	validateRequest({ params: restaurantParamSchema }),
+	menuController.getRestaurantMenus.bind(menuController)
 );
 
 RestaurantRouter.get(
