@@ -50,8 +50,8 @@ export class MenuController {
 	}
 
 	async getRestaurantMenuById(req: Request, res: Response) {
-		const { menuId } = req.validated?.params;
-		const menu = await this.menuService.getRestaurantMenuById(menuId);
+		const { menuId, restaurantId } = req.validated?.params;
+		const menu = await this.menuService.getRestaurantMenuById(restaurantId, menuId);
 		sendResponse(res, StatusCodes.OK, 'Menu fetched successfully', menu);
 	}
 
