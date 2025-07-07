@@ -56,6 +56,9 @@ export class MenuController {
 	}
 
 	async setDefaultRestaurantMenu(req: Request, res: Response) {
+		const { restaurantId, menuId } = req.validated?.params;
+		const { userId } = req.validated?.body;
+		await this.menuService.setDefaultRestaurantMenu(restaurantId, menuId, userId);
 		sendResponse(res, StatusCodes.OK, 'Default menu set successfully');
 	}
 
