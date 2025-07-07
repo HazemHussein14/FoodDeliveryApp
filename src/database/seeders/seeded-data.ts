@@ -245,13 +245,7 @@ const orderSeedData: SeedData<Order> = {
 			cartId,
 			customerId,
 			deliveryAddressId: (index % 10) + 1, // Link to existing addresses (1-10)
-			customerInstructions: faker.helpers.arrayElement([
-				'Please ring the doorbell',
-				'Leave at the door',
-				'Call when you arrive',
-				'',
-				'Extra napkins please'
-			]),
+			customerInstructions: faker.helpers.arrayElement(['Please ring the doorbell', 'Leave at the door', 'Call when you arrive', '', 'Extra napkins please']),
 			totalItems,
 			totalItemsAmount,
 			deliveryFees,

@@ -1,10 +1,10 @@
-import { config } from "../config/env";
+import { config } from '../config/env';
 import bcrypt from 'bcryptjs';
-import { LoginDto, RegisterDto } from "../dto/auth.dto";
-import { ApplicationError, ErrMessages } from "../errors";
-import { AuthorizedUser } from "../middlewares/auth.middleware";
-import { UserRepository } from "../repositories";
-import { JwtService } from "../shared/jwt";
+import { LoginDto, RegisterDto } from '../dto/auth.dto';
+import { ApplicationError, ErrMessages } from '../errors';
+import { AuthorizedUser } from '../middlewares/auth.middleware';
+import { UserRepository } from '../repositories';
+import { JwtService } from '../shared/jwt';
 
 export class AuthService {
 	private repo = new UserRepository();

@@ -49,10 +49,7 @@ export class CartService {
 		this.validateCartItemBelongsToCart(cartItem.cartId, cartId);
 	}
 
-	private async validateCartBelongsToCustomer(
-		userId: number,
-		cartId?: number
-	): Promise<{ customer: Customer; cart: Cart }> {
+	private async validateCartBelongsToCustomer(userId: number, cartId?: number): Promise<{ customer: Customer; cart: Cart }> {
 		const customer = await this.getCustomerByUserId(userId);
 
 		let cart: Cart | null;
@@ -137,9 +134,7 @@ export class CartService {
 		if (isNewCart) cart = await this.createCart(customerId);
 
 		// 3. Get current restaurant of the cart (via cart items)
-		const cartRestaurantId = isNewCart
-			? restaurantId
-			: ((await this.getCurrentRestaurantOfCart(cart!.cartId)) ?? restaurantId);
+		const cartRestaurantId = isNewCart ? restaurantId : ((await this.getCurrentRestaurantOfCart(cart!.cartId)) ?? restaurantId);
 
 		// 4. Validate item belongs to restaurant's active menu
 		await this.validateItemBelongsToRestaurant(restaurantId, itemId);

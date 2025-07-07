@@ -1,13 +1,4 @@
-import {
-	Entity,
-	PrimaryGeneratedColumn,
-	Column,
-	CreateDateColumn,
-	UpdateDateColumn,
-	OneToOne,
-	JoinColumn,
-	OneToMany
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, OneToMany } from 'typeorm';
 import { User } from '../user/user.entity';
 import { CartItem } from '../cart/cart-item.entity';
 import { AbstractEntity } from '../base.entity';
@@ -117,9 +108,7 @@ export class Restaurant extends AbstractEntity {
 	 *                      The 'addedAt' and 'userId' fields will be ignored.
 	 */
 	updateRestaurantUser(userId: number, updates: Partial<RestaurantUser>): void {
-		this.restaurantUsers = this.restaurantUsers.map((user) =>
-			user.userId === userId ? { ...user, ...updates } : user
-		);
+		this.restaurantUsers = this.restaurantUsers.map((user) => (user.userId === userId ? { ...user, ...updates } : user));
 	}
 
 	/**

@@ -35,13 +35,13 @@ export class OrderItem extends AbstractEntity {
 	@CreateDateColumn()
 	createdAt!: Date;
 
-/**
- * Builds an OrderItem instance from the provided OrderItemDto.
- *
- * @param OrderItemDto - The DTO containing order item details such as
- * orderId, menuItemId, quantity, itemPrice, and totalPrice.
- * @returns A new OrderItem instance initialized with the provided details.
- */
+	/**
+	 * Builds an OrderItem instance from the provided OrderItemDto.
+	 *
+	 * @param OrderItemDto - The DTO containing order item details such as
+	 * orderId, menuItemId, quantity, itemPrice, and totalPrice.
+	 * @returns A new OrderItem instance initialized with the provided details.
+	 */
 
 	static buildOrderItem(OrderItemDto: OrderItemDto) {
 		const orderItem = new OrderItem();

@@ -1,12 +1,4 @@
-import {
-	Column,
-	Entity,
-	PrimaryGeneratedColumn,
-	ManyToOne,
-	JoinColumn,
-	CreateDateColumn,
-	UpdateDateColumn
-} from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { AbstractEntity } from '../base.entity';
 import { PaymentMethod } from './payment-method.entity';
 
