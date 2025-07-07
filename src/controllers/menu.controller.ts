@@ -3,6 +3,7 @@ import { sendResponse } from '../utils/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 import { AddItemsToMenuRequestDTO, CreateMenuRequestDTO, UpdateMenuRequestDTO } from '../dto/menu.dto';
 import { MenuService } from '../services';
+import logger from '../config/logger';
 
 export class MenuController {
 	private readonly menuService = new MenuService();
@@ -41,7 +42,12 @@ export class MenuController {
 	}
 
 	async searchForMenuItems(req: Request, res: Response) {
-		sendResponse(res, StatusCodes.OK, 'Menu items fetched successfully');
+		logger.info(`searching for menu items`);
+		const { restaurantId, menuId } = req.validated?.params;
+		const { query } = req.validated?.query;
+		logger.info(`query ${query}`);
+		const menuItems = await this.menuService.searchForMenuItems(restaurantId, menuId, query);
+		sendResponse(res, StatusCodes.OK, 'Menu items fetched successfully', menuItems);
 	}
 
 	async updateRestaurantMenu(req: Request, res: Response) {

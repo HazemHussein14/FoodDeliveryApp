@@ -12,7 +12,6 @@ import {
 } from '../dto/menu.dto';
 import { RestaurantService } from './restaurant.service';
 import { OrderService } from './order.service';
-import { C } from '@faker-js/faker/dist/airline-BUL6NtOJ';
 
 const MAX_MENUS_PER_RESTAURANT = 3;
 
@@ -135,6 +134,11 @@ export class MenuService {
 		const updatedMenu = await this.menuRepo.updateMenu(request.menuId, { menuTitle: request.menuTitle });
 
 		return this.buildMenuResponse(updatedMenu!);
+	}
+
+	async searchForMenuItems(restaurantId: number, menuId: number, query: string) {
+		const items = await this.menuRepo.searchItems(restaurantId, menuId, query);
+		return items;
 	}
 
 	// Helper Methods
