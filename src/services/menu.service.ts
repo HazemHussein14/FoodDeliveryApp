@@ -3,9 +3,16 @@ import { ErrMessages, ApplicationError } from '../errors';
 import { Transactional } from 'typeorm-transactional';
 import { MenuRepository } from '../repositories';
 import { Menu, MenuItem } from '../models';
-import { AddItemsToMenuRequestDTO, CreateMenuRequestDTO, MenuItemResponseDTO, MenuResponseDTO } from '../dto/menu.dto';
+import {
+	AddItemsToMenuRequestDTO,
+	CreateMenuRequestDTO,
+	MenuItemResponseDTO,
+	MenuResponseDTO,
+	UpdateMenuRequestDTO
+} from '../dto/menu.dto';
 import { RestaurantService } from './restaurant.service';
 import { OrderService } from './order.service';
+import { C } from '@faker-js/faker/dist/airline-BUL6NtOJ';
 
 const MAX_MENUS_PER_RESTAURANT = 3;
 
@@ -72,7 +79,7 @@ export class MenuService {
 	 * @returns The requested menu.
 	 */
 	async getRestaurantMenuById(menuId: number): Promise<Menu> {
-    // update it to get menu with menuId & restaurantId
+		// update it to get menu with menuId & restaurantId
 		const menu = await this.menuRepo.getMenuWithItemsDetails(menuId);
 		if (!menu) {
 			throw new ApplicationError(ErrMessages.menu.MenuNotFound, StatusCodes.NOT_FOUND);
@@ -112,6 +119,22 @@ export class MenuService {
 		this.validateMenuBelongsToRestaurant(menu, restaurantId);
 
 		await this.menuRepo.setDefaultMenu(restaurantId, menuId);
+	}
+
+	@Transactional()
+	async updateRestaurantMenu(restaurantId: number, request: UpdateMenuRequestDTO) {
+		const restaurant = await this.restaurantService.getRestaurantById(restaurantId);
+		this.restaurantService.validateUserIsOwner(restaurant, request.userId);
+
+		const menu = await this.getRestaurantMenuById(request.menuId);
+		this.validateMenuBelongsToRestaurant(menu, restaurantId);
+
+		const restaurantMenus = restaurant.menus.filter((m) => !m.isDeleted && m.menuId !== request.menuId);
+		this.validateUniqueMenuTitleAcrossRestaurant(restaurantMenus, request.menuTitle);
+
+		const updatedMenu = await this.menuRepo.updateMenu(request.menuId, { menuTitle: request.menuTitle });
+
+		return this.buildMenuResponse(updatedMenu!);
 	}
 
 	// Helper Methods
