@@ -35,3 +35,7 @@ export const deleteMenuBodySchema = Joi.object({
 export const setDefaultMenuBodySchema = Joi.object({
 	userId: idSchema.label('User ID')
 });
+
+export const searchMenuItemsQuerySchema = Joi.object({
+	query: Joi.string().min(3).required()
+});

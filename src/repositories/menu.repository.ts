@@ -71,11 +71,10 @@ export class MenuRepository {
 		await this.menuRepo.update(menuId, { isDeleted: true, isActive: false });
 	}
 
-async setDefaultMenu(restaurantId: number, menuId: number): Promise<void> {
-	await this.menuRepo.update({ restaurantId }, { isActive: false });
-	await this.menuRepo.update({ menuId }, { isActive: true });
-}
-
+	async setDefaultMenu(restaurantId: number, menuId: number): Promise<void> {
+		await this.menuRepo.update({ restaurantId }, { isActive: false });
+		await this.menuRepo.update({ menuId }, { isActive: true });
+	}
 
 	async getMenuItemsByItemIds(menuId: number, itemIds: number[]): Promise<MenuItem[]> {
 		return await this.menuItemRepo.find({
@@ -160,10 +159,14 @@ async setDefaultMenu(restaurantId: number, menuId: number): Promise<void> {
 		await this.itemRepo.update(itemId, { isAvailable: false });
 	}
 
-	async searchItems(query: string): Promise<Item[]> {
+	async searchItems(restaurantId: number, menuId: number, query: string): Promise<Item[]> {
 		return await this.itemRepo
 			.createQueryBuilder('item')
-			.where('item.name ILIKE :query', { query: `%${query}%` })
+			.innerJoin('item.menuItems', 'menuItem')
+			.innerJoin('menuItem.menu', 'menu')
+			.where('menu.restaurantId = :restaurantId', { restaurantId })
+			.andWhere('menu.menuId = :menuId', { menuId })
+			.andWhere('item.name ILIKE :query', { query: `%${query}%` })
 			.andWhere('item.isAvailable = :isAvailable', { isAvailable: true })
 			.getMany();
 	}
