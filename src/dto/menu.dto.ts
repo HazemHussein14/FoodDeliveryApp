@@ -12,6 +12,12 @@ export interface MenuResponseDTO {
 	updatedAt: string;
 }
 
+export interface UpdateMenuRequestDTO {
+	userId: number;
+	menuId: number;
+	menuTitle: string;
+}
+
 export interface AddItemsToMenuRequestDTO {
 	userId: number;
 	restaurantId: number;

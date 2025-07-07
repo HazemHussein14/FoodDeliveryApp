@@ -53,8 +53,8 @@ RestaurantRouter.patch(
 );
 
 RestaurantRouter.put(
-	'/menu',
-	// validateRequest({ body: menuController.updateRestaurantMenuSchema }),
+	'/:restaurantId/menus/:menuId',
+	validateRequest({ params: menuParamSchema, body: createMenuBodySchema }),
 	menuController.updateRestaurantMenu.bind(menuController)
 );
 
