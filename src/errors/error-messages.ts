@@ -49,7 +49,7 @@ export const ErrMessages = {
 
 	// Custom Errors
 	// todo: add custom errors here
-		cart: {
+	cart: {
 		CartNotFound: 'Cart Not Found',
 		CartAlreadyExists: 'Cart Already Exists',
 		CartItemNotFound: 'Cart Item Not Found',
@@ -66,8 +66,7 @@ export const ErrMessages = {
 
 	restaurant: {
 		RestaurantNotFound: 'Restaurant not found',
-		RestaurantNotAvailable:
-			'Sorry restaurant cannot process your order right now, try again later or choose different one',
+		RestaurantNotAvailable: 'Sorry restaurant cannot process your order right now, try again later or choose different one',
 		RestaurantNotOpen: 'Restaurant is not open'
 	},
 
@@ -81,8 +80,12 @@ export const ErrMessages = {
 		NoActiveMenuFound: 'Sorry there is no active menu for current restaurant',
 		ItemNotBelongToActiveMenu: 'Item does not belong to an active menu of this restaurant'
 	},
+
 	customer: {
-		CustomerNotFound: 'Customer not found'
+		CustomerNotFound: 'Customer not found',
+		CustomerIsNotActive: 'Customer is not already active',
+		OrderFeedbackMustnotBeEmpty: 'Order rating or a comment should be submitted',
+		AddressNotFound: 'Provided address can not be fount'
 	},
 
 	order: {
@@ -90,5 +93,9 @@ export const ErrMessages = {
 		OrderStatusNotFound: 'Order status not found',
 		OrderItemNotFound: 'Order item not found',
 		CancellationUnAlllowed: 'Order cant be cancelled'
+	},
+
+	payment: {
+		PaymentMethodNotFound: 'Payment method not found'
 	}
 };

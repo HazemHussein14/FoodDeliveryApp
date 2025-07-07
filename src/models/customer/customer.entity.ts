@@ -1,12 +1,4 @@
-import {
-	Entity,
-	PrimaryGeneratedColumn,
-	Column,
-	CreateDateColumn,
-	UpdateDateColumn,
-	OneToOne,
-	JoinColumn
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
 import { AbstractEntity } from '../base.entity';
 import { User } from '../user/user.entity';
 
@@ -33,4 +25,7 @@ export class Customer extends AbstractEntity {
 	@OneToOne(() => User)
 	@JoinColumn({ name: 'user_id' })
 	user!: User;
+
+	@Column({ nullable: true })
+	preferredPaymentMethodId!: number;
 }
