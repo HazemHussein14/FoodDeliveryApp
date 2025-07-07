@@ -18,8 +18,7 @@ const skipLimiter = (req: Request, res: Response): boolean => {
 	return false;
 };
 
-const rateLimiterMessage = (req: Request, res: Response) =>
-	sendResponse(res, 429, 'Too many requests, please try again later.');
+const rateLimiterMessage = (req: Request, res: Response) => sendResponse(res, 429, 'Too many requests, please try again later.');
 
 const defaultOptions: Partial<Options> = {
 	standardHeaders: 'draft-8', // draft-6: `RateLimit-*` headers; draft-7 & draft-8: combined `RateLimit` header

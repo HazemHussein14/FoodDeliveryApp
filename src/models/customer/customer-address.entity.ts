@@ -1,13 +1,4 @@
-import {
-	Column,
-	Entity,
-	PrimaryColumn,
-	ManyToOne,
-	JoinColumn,
-	CreateDateColumn,
-	Unique,
-	PrimaryGeneratedColumn
-} from 'typeorm';
+import { Column, Entity, PrimaryColumn, ManyToOne, JoinColumn, CreateDateColumn, Unique, PrimaryGeneratedColumn } from 'typeorm';
 import { Customer } from './customer.entity';
 import { Address } from './address.entity';
 import { AbstractEntity } from '../base.entity';

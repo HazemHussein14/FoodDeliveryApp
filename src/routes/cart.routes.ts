@@ -62,12 +62,7 @@ CartRouter.post('/add-item', validateRequest({ body: addCartItemSchema }), contr
  *         description: Unauthorized - User is not authenticated
  *
  */
-CartRouter.delete(
-	'/item/:cartItemId',
-	isAuthenticated,
-	validateRequest({ params: removeItemParamsSchema, body: removeItemBodySchema }),
-	controller.removeItem.bind(controller)
-);
+CartRouter.delete('/item/:cartItemId', isAuthenticated, validateRequest({ params: removeItemParamsSchema, body: removeItemBodySchema }), controller.removeItem.bind(controller));
 
 CartRouter.delete('/:cartId', validateRequest({ params: clearCartSchema }), controller.clearCart.bind(controller));
 

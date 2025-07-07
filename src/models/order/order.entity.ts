@@ -1,13 +1,4 @@
-import {
-	Entity,
-	PrimaryGeneratedColumn,
-	Column,
-	CreateDateColumn,
-	UpdateDateColumn,
-	ManyToOne,
-	JoinColumn,
-	OneToMany
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { AbstractEntity } from '../base.entity';
 import { OrderStatus } from './order-status.entity';
 import { Cart } from '../cart/cart.entity';
@@ -95,6 +86,11 @@ export class Order extends AbstractEntity {
 	@OneToMany(() => OrderItem, (orderItem) => orderItem.order)
 	items!: OrderItem[];
 
+	@Column({ type: 'int', nullable: true })
+	customerRating?: number;
+
+	@Column({ type: 'text', nullable: true })
+	customerComment?: string;
 	/**
 	 * Build an Order object from an OrderDto.
 	 * @param createOrderDto an OrderDto

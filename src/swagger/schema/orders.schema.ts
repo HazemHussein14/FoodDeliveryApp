@@ -44,18 +44,7 @@ const ordersSwaggerSchema = {
 	},
 	CreateOrderRequest: {
 		type: 'object',
-		required: [
-			'customerId',
-			'restaurantId',
-			'deliveryAddressId',
-			'totalItemsQty',
-			'totalItemsAmount',
-			'serviceFees',
-			'deliveryFees',
-			'totalAmount',
-			'placedAt',
-			'items'
-		],
+		required: ['customerId', 'restaurantId', 'deliveryAddressId', 'totalItemsQty', 'totalItemsAmount', 'serviceFees', 'deliveryFees', 'totalAmount', 'placedAt', 'items'],
 		properties: {
 			customerId: {
 				type: 'integer',

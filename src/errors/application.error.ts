@@ -5,12 +5,7 @@ export class ApplicationError extends Error {
 	public readonly isOperational: boolean;
 	public readonly data?: any;
 
-	constructor(
-		message: string,
-		statusCode: number = StatusCodes.INTERNAL_SERVER_ERROR,
-		isOperational: boolean = true,
-		data?: any
-	) {
+	constructor(message: string, statusCode: number = StatusCodes.INTERNAL_SERVER_ERROR, isOperational: boolean = true, data?: any) {
 		super(message);
 		Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
 

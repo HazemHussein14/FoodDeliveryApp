@@ -294,10 +294,7 @@ export class OrderService {
 		}
 
 		if (NON_CANCELLABLE_STATES.includes(order.orderStatus.statusName)) {
-			throw new ApplicationError(
-				`Order cannot be cancelled in current state: ${order.orderStatus.statusName}`,
-				StatusCodes.BAD_REQUEST
-			);
+			throw new ApplicationError(`Order cannot be cancelled in current state: ${order.orderStatus.statusName}`, StatusCodes.BAD_REQUEST);
 		}
 		if (!VALID_REASONS.includes(cancellationReason)) {
 			throw new ApplicationError('Invalid cancellation reason', StatusCodes.BAD_REQUEST);

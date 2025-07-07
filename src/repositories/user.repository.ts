@@ -58,4 +58,8 @@ export class UserRepository {
 			where: { userId }
 		});
 	}
+
+	async updateUser(userId: number, data: Partial<User>) {
+		await this.userRepo.update(userId, data);
+	}
 }

@@ -50,7 +50,7 @@ export class SeedService {
 	async seed<T>(seedData: SeedData<T>[]): Promise<void> {
 		try {
 			divider();
-			console.info(`🚩 seeding tables...`);
+			console.info('🚩 seeding tables...');
 
 			await this.datasource.transaction(async (transactionalEntityManager) => {
 				for (const { entity, data } of seedData) {
@@ -83,7 +83,7 @@ export class SeedService {
 			const entities = this.datasource.entityMetadatas;
 
 			divider();
-			console.info(`🚩 clear all tables...`);
+			console.info('🚩 clear all tables...');
 
 			await this.datasource.transaction(async (transactionalEntityManager) => {
 				for (const entity of entities) {
@@ -103,7 +103,7 @@ export class SeedService {
 		// Dynamically reset all sequences
 		try {
 			divider();
-			console.info(`🚩 resetting all sequences process...`);
+			console.info('🚩 resetting all sequences process...');
 
 			await this.datasource.transaction(async (transactionalEntityManager) => {
 				const sequences = await transactionalEntityManager.query(`

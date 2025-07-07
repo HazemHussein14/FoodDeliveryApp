@@ -1,13 +1,4 @@
-import {
-	Entity,
-	PrimaryGeneratedColumn,
-	Column,
-	CreateDateColumn,
-	UpdateDateColumn,
-	ManyToOne,
-	JoinColumn,
-	Unique
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Unique } from 'typeorm';
 import { AbstractEntity } from '../base.entity';
 import { User } from './user.entity';
 import { Role } from './role.entity';

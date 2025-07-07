@@ -1,13 +1,4 @@
-import {
-	Entity,
-	PrimaryGeneratedColumn,
-	Column,
-	CreateDateColumn,
-	UpdateDateColumn,
-	OneToMany,
-	ManyToOne,
-	JoinColumn
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { AbstractEntity } from '../base.entity';
 import { MenuItem } from './menu-item.entity';
 import { Restaurant } from '../restaurant/restaurant.entity';

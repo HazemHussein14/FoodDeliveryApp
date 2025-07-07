@@ -40,10 +40,7 @@ export class RestaurantRepository {
 		return await this.getRestaurantById(restaurantId);
 	}
 
-	async updateRestaurantStatus(
-		restaurantId: number,
-		status: 'open' | 'busy' | 'pause' | 'closed'
-	): Promise<Restaurant | null> {
+	async updateRestaurantStatus(restaurantId: number, status: 'open' | 'busy' | 'pause' | 'closed'): Promise<Restaurant | null> {
 		await this.restaurantRepo.update(restaurantId, { status });
 		return await this.getRestaurantById(restaurantId);
 	}
