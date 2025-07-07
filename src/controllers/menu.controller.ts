@@ -28,8 +28,16 @@ export class MenuController {
 		sendResponse(res, StatusCodes.CREATED, 'Menu items added successfully', menuItems);
 	}
 
-	async getRestaurantMenu(req: Request, res: Response) {
-		sendResponse(res, StatusCodes.OK, 'Menu fetched successfully');
+	async getRestaurantMenuById(req: Request, res: Response) {
+		const { menuId } = req.validated?.params;
+		const menu = await this.menuService.getRestaurantMenuById(menuId);
+		sendResponse(res, StatusCodes.OK, 'Menu fetched successfully', menu);
+	}
+
+	async getRestaurantMenus(req: Request, res: Response) {
+		const { restaurantId } = req.validated?.params;
+		const menus = await this.menuService.getRestaurantMenus(restaurantId);
+		sendResponse(res, StatusCodes.OK, 'Menus fetched successfully', menus);
 	}
 
 	async searchForMenuItems(req: Request, res: Response) {
