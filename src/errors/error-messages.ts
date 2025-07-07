@@ -83,7 +83,8 @@ export const ErrMessages = {
 		MenuWithSameTitleExists: 'Menu with same title already exists',
 		RestaurantMenuLimitReached: 'You have reached the maximum number of menus for this restaurant',
 		MenuItemAlreadyExists: 'Menu item already exists',
-		MenuNotBelongToRestaurant: 'Menu does not belong to this restaurant'
+		MenuNotBelongToRestaurant: 'Menu does not belong to this restaurant',
+		MenuHasActiveOrders: 'Menu has active orders and cannot be deleted.'
 	},
 
 	customer: {

@@ -20,7 +20,7 @@ export interface AddItemsToMenuRequestDTO {
 }
 
 export interface MenuItemResponseDTO {
-  menuId: number;
+	menuId: number;
 	menuItemId: number;
 	itemId: number;
 	name: string;

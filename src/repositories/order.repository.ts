@@ -175,4 +175,19 @@ export class OrderRepository {
 			where: { statusName }
 		});
 	}
+
+	async hasActiveOrdersForMenu(menuId: number): Promise<boolean> {
+		const count = await this.orderRepo
+			.createQueryBuilder('order')
+			.innerJoin('order.items', 'orderItem')
+			.innerJoin('orderItem.menuItem', 'menuItem')
+			.innerJoin('order.orderStatus', 'orderStatus')
+			.where('menuItem.menuId = :menuId', { menuId })
+			.andWhere('orderStatus.statusName IN (:...activeStatuses)', {
+				activeStatuses: ['pending', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery']
+			})
+			.getCount();
+
+		return count > 0;
+	}
 }

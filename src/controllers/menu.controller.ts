@@ -49,7 +49,10 @@ export class MenuController {
 	}
 
 	async deleteRestaurantMenu(req: Request, res: Response) {
-		sendResponse(res, StatusCodes.OK, 'Menu deleted successfully');
+		const { restaurantId, menuId } = req.validated?.params;
+		const { userId } = req.validated?.body;
+		await this.menuService.deleteRestaurantMenu(restaurantId, menuId, userId);
+		sendResponse(res, StatusCodes.NO_CONTENT, 'Menu deleted successfully');
 	}
 
 	async setDefaultRestaurantMenu(req: Request, res: Response) {
