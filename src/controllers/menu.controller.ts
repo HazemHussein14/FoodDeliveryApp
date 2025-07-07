@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { sendResponse } from '../utils/sendResponse';
 import { StatusCodes } from 'http-status-codes';
-import { AddItemsToMenuRequestDTO, CreateMenuRequestDTO } from '../dto/menu.dto';
+import { AddItemsToMenuRequestDTO, CreateMenuRequestDTO, UpdateMenuRequestDTO } from '../dto/menu.dto';
 import { MenuService } from '../services';
 
 export class MenuController {
@@ -45,7 +45,13 @@ export class MenuController {
 	}
 
 	async updateRestaurantMenu(req: Request, res: Response) {
-		sendResponse(res, StatusCodes.OK, 'Menu updated successfully');
+		const { restaurantId, menuId } = req.validated?.params;
+		const updateMenuRequest: UpdateMenuRequestDTO = {
+			...req.validated?.body,
+			menuId
+		};
+		const menu = await this.menuService.updateRestaurantMenu(restaurantId, updateMenuRequest);
+		sendResponse(res, StatusCodes.OK, 'Menu updated successfully', menu);
 	}
 
 	async deleteRestaurantMenu(req: Request, res: Response) {
