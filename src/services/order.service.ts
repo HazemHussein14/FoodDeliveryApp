@@ -470,7 +470,7 @@ export class OrderService {
 	}
 
 	private async validateRestaurantForOrder(restaurantId: number) {
-		await this.restaurantService.validateRestaurantIsActive(restaurantId);
+		// await this.restaurantService.validateRestaurantIsActive(restaurantId);
 		await this.restaurantService.validateRestaurantIsOpen(restaurantId);
 	}
 
@@ -604,4 +604,18 @@ export class OrderService {
 				return 0;
 		}
 	}
+
+	/**
+	 * Check if there are any active orders containing items from the given menu
+	 *
+	 * @param menuId - ID of the menu to check
+	 * @returns true if there are active orders, false otherwise
+	 */
+	async hasActiveOrdersForMenu(menuId: number): Promise<boolean> {
+		return await this.orderRepo.hasActiveOrdersForMenu(menuId);
+	}
+
+  async hasActiveOrdersForMenuItem(menuId: number, menuItemId: number): Promise<boolean> {
+    return await this.orderRepo.hasActiveOrdersForMenuItem(menuId, menuItemId);
+  }
 }

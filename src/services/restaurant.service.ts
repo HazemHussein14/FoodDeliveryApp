@@ -1,9 +1,10 @@
 import { StatusCodes } from 'http-status-codes';
 import { ApplicationError, ErrMessages } from '../errors';
 import { RestaurantRepository } from '../repositories';
+import { Restaurant } from '../models';
 
 export class RestaurantService {
-	private restaurantRepo = new RestaurantRepository();
+	private readonly restaurantRepo = new RestaurantRepository();
 
 	async getRestaurantByUserId(userId: number) {
 		const restaurant = await this.restaurantRepo.getRestaurantByUserId(userId);
@@ -22,6 +23,19 @@ export class RestaurantService {
 		return restaurant;
 	}
 
+	async validateUserOwnsActiveRestaurant(restaurantId: number, userId: number) {
+		const restaurant = await this.getRestaurantById(restaurantId);
+		this.validateUserIsOwner(restaurant, userId);
+		this.validateRestaurantIsActive(restaurant);
+		return restaurant;
+	}
+
+	validateUserIsOwner(restaurant: Restaurant, userId: number) {
+		if (restaurant.userId !== userId) {
+			throw new ApplicationError(ErrMessages.auth.AccessDenied, StatusCodes.FORBIDDEN);
+		}
+	}
+
 	async validateRestaurantIsOpen(restaurantId: number) {
 		const restaurant = await this.getRestaurantById(restaurantId);
 
@@ -29,9 +43,7 @@ export class RestaurantService {
 			throw new ApplicationError(ErrMessages.restaurant.RestaurantNotOpen, StatusCodes.BAD_REQUEST);
 		}
 	}
-	async validateRestaurantIsActive(restaurantId: number) {
-		const restaurant = await this.getRestaurantById(restaurantId);
-
+	async validateRestaurantIsActive(restaurant: Restaurant) {
 		if (!restaurant.isActive) {
 			throw new ApplicationError(ErrMessages.restaurant.RestaurantNotAvailable, StatusCodes.BAD_REQUEST);
 		}

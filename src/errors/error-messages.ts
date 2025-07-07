@@ -78,7 +78,15 @@ export const ErrMessages = {
 
 	menu: {
 		NoActiveMenuFound: 'Sorry there is no active menu for current restaurant',
-		ItemNotBelongToActiveMenu: 'Item does not belong to an active menu of this restaurant'
+		ItemNotBelongToActiveMenu: 'Item does not belong to an active menu of this restaurant',
+		MenuNotFound: 'Menu not found',
+		MenuWithSameTitleExists: 'Menu with same title already exists',
+		RestaurantMenuLimitReached: 'You have reached the maximum number of menus for this restaurant',
+		MenuItemAlreadyExists: 'Menu item already exists',
+		MenuNotBelongToRestaurant: 'Menu does not belong to this restaurant',
+		MenuHasActiveOrders: 'Menu has active orders and cannot be deleted.',
+		MenuItemHasActiveOrders: 'Menu item has active orders and cannot be deleted.',
+		MenuItemNotFound: 'Menu item not found in this menu'
 	},
 
 	customer: {
