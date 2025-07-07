@@ -25,12 +25,13 @@ export class MenuRepository {
 		});
 	}
 
-	async getMenuWithItemsDetails(menuId: number): Promise<Menu | null> {
+	async getMenuWithItemDetailsByRestaurant(restaurantId: number,menuId: number): Promise<Menu | null> {
 		return await this.menuRepo
 			.createQueryBuilder('menu')
 			.leftJoinAndSelect('menu.menuItems', 'menuItem')
 			.leftJoinAndSelect('menuItem.item', 'item')
 			.where('menu.menuId = :menuId', { menuId })
+      .andWhere('menu.restaurantId = :restaurantId', { restaurantId })
 			.getOne();
 	}
 

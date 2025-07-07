@@ -2,7 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import { ErrMessages, ApplicationError } from '../errors';
 import { Transactional } from 'typeorm-transactional';
 import { MenuRepository } from '../repositories';
-import { Menu, MenuItem } from '../models';
+import { Menu, MenuItem, Restaurant } from '../models';
 import {
 	AddItemsToMenuRequestDTO,
 	CreateMenuRequestDTO,
@@ -35,10 +35,7 @@ export class MenuService {
 	 */
 	@Transactional()
 	async createRestaurantMenu(restaurantId: number, request: CreateMenuRequestDTO) {
-		const restaurant = await this.restaurantService.getRestaurantById(restaurantId);
-
-		this.restaurantService.validateRestaurantIsActive(restaurant);
-		this.restaurantService.validateUserIsOwner(restaurant, request.userId);
+		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, request.userId);
 
 		const restaurantMenus = restaurant.menus.filter((menu) => !menu.isDeleted);
 
@@ -55,11 +52,8 @@ export class MenuService {
 	async addItemsToRestaurantMenu(request: AddItemsToMenuRequestDTO) {
 		const { menuId, items, restaurantId, userId } = request;
 
-		const restaurant = await this.restaurantService.getRestaurantById(restaurantId);
-		this.restaurantService.validateUserIsOwner(restaurant, userId);
-
-		const menu = await this.getRestaurantMenuById(menuId);
-		this.validateMenuBelongsToRestaurant(menu, restaurantId);
+		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, userId);
+		const menu = this.findRestaurantMenu(restaurant, menuId);
 
 		const itemIds = this.extractItemIds(items);
 		this.validateExistingMenuItems(menu.menuItems, itemIds);
@@ -76,12 +70,10 @@ export class MenuService {
 		const { restaurantId, menuId, itemId, userId } = request;
 
 		// Validate user owns the restaurant
-		const restaurant = await this.restaurantService.getRestaurantById(restaurantId);
-		this.restaurantService.validateUserIsOwner(restaurant, userId);
+		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, userId);
 
 		// Validate menu belongs to restaurant
-		const menu = await this.getRestaurantMenuById(menuId);
-		this.validateMenuBelongsToRestaurant(menu, restaurantId);
+		const menu = this.findRestaurantMenu(restaurant, menuId);
 
 		// Validate item exists in the menu
 		const menuItem = menu.menuItems.find((menuItem) => menuItem.itemId === itemId);
@@ -106,31 +98,25 @@ export class MenuService {
 	 * @throws {ApplicationError} If the menu is not found.
 	 * @returns The requested menu.
 	 */
-	async getRestaurantMenuById(menuId: number): Promise<Menu> {
-		// update it to get menu with menuId & restaurantId
-		const menu = await this.menuRepo.getMenuWithItemsDetails(menuId);
-		if (!menu) {
-			throw new ApplicationError(ErrMessages.menu.MenuNotFound, StatusCodes.NOT_FOUND);
-		}
+	async getRestaurantMenuById(restaurantId: number, menuId: number): Promise<Menu | null> {
+		const menu = await this.menuRepo.getMenuWithItemDetailsByRestaurant(restaurantId, menuId);
 		return menu;
 	}
 
-	async getRestaurantMenus(restaurantId: number): Promise<MenuResponseDTO[]> {
+	async getRestaurantMenus(restaurantId: number): Promise<Menu[] | []> {
 		const menus = await this.menuRepo.getRestaurantMenus(restaurantId);
-		return menus.map((menu) => this.buildMenuResponse(menu));
+		return menus;
 	}
 
 	@Transactional()
 	async deleteRestaurantMenu(restaurantId: number, menuId: number, userId: number): Promise<void> {
-		const restaurant = await this.restaurantService.getRestaurantById(restaurantId);
-		this.restaurantService.validateUserIsOwner(restaurant, userId);
+		// Validate user owns the restaurant
+		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, userId);
 
-		const menu = await this.getRestaurantMenuById(menuId);
-		this.validateMenuBelongsToRestaurant(menu, restaurantId);
+		// Validate menu belongs to restaurant
+		const menu = this.findRestaurantMenu(restaurant, menuId);
 
-		this.validateMenuBelongsToRestaurant(menu, restaurantId);
-
-		const hasActiveOrders = await this.orderService.hasActiveOrdersForMenu(menuId);
+		const hasActiveOrders = await this.orderService.hasActiveOrdersForMenu(menu.menuId);
 		if (hasActiveOrders) {
 			throw new ApplicationError(ErrMessages.menu.MenuHasActiveOrders, StatusCodes.BAD_REQUEST);
 		}
@@ -140,22 +126,19 @@ export class MenuService {
 
 	@Transactional()
 	async setDefaultRestaurantMenu(restaurantId: number, menuId: number, userId: number): Promise<void> {
-		const restaurant = await this.restaurantService.getRestaurantById(restaurantId);
-		this.restaurantService.validateUserIsOwner(restaurant, userId);
+		// Validate user owns the restaurant
+		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, userId);
 
-		const menu = await this.getRestaurantMenuById(menuId);
-		this.validateMenuBelongsToRestaurant(menu, restaurantId);
+		// Validate menu belongs to restaurant
+		const menu = this.findRestaurantMenu(restaurant, menuId);
 
-		await this.menuRepo.setDefaultMenu(restaurantId, menuId);
+		await this.menuRepo.setDefaultMenu(restaurantId, menu.menuId);
 	}
 
 	@Transactional()
 	async updateRestaurantMenu(restaurantId: number, request: UpdateMenuRequestDTO) {
-		const restaurant = await this.restaurantService.getRestaurantById(restaurantId);
-		this.restaurantService.validateUserIsOwner(restaurant, request.userId);
-
-		const menu = await this.getRestaurantMenuById(request.menuId);
-		this.validateMenuBelongsToRestaurant(menu, restaurantId);
+		// Validate user owns the restaurant
+		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, request.userId);
 
 		const restaurantMenus = restaurant.menus.filter((m) => !m.isDeleted && m.menuId !== request.menuId);
 		this.validateUniqueMenuTitleAcrossRestaurant(restaurantMenus, request.menuTitle);
@@ -183,17 +166,12 @@ export class MenuService {
 		return items.map((item) => item.itemId);
 	}
 
-	/**
-	 * Validates that a menu belongs to a given restaurant.
-	 *
-	 * @param menu - The menu to check.
-	 * @param restaurantId - The ID of the restaurant to check against.
-	 * @throws ApplicationError if the menu does not belong to the restaurant.
-	 */
-	private validateMenuBelongsToRestaurant(menu: Menu, restaurantId: number) {
-		if (menu.restaurantId !== restaurantId) {
-			throw new ApplicationError(ErrMessages.menu.MenuNotBelongToRestaurant, StatusCodes.BAD_REQUEST);
+	private findRestaurantMenu(restaurant: Restaurant, menuId: number) {
+		const menu = restaurant.menus.find((menu: Menu) => menu.menuId === menuId);
+		if (!menu) {
+			throw new ApplicationError(ErrMessages.menu.MenuNotFound, StatusCodes.NOT_FOUND);
 		}
+		return menu;
 	}
 
 	/**

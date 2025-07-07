@@ -23,6 +23,13 @@ export class RestaurantService {
 		return restaurant;
 	}
 
+	async validateUserOwnsActiveRestaurant(restaurantId: number, userId: number) {
+		const restaurant = await this.getRestaurantById(restaurantId);
+		this.validateUserIsOwner(restaurant, userId);
+		this.validateRestaurantIsActive(restaurant);
+		return restaurant;
+	}
+
 	validateUserIsOwner(restaurant: Restaurant, userId: number) {
 		if (restaurant.userId !== userId) {
 			throw new ApplicationError(ErrMessages.auth.AccessDenied, StatusCodes.FORBIDDEN);
