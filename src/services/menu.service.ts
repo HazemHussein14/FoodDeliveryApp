@@ -8,6 +8,7 @@ import {
 	CreateMenuRequestDTO,
 	MenuItemResponseDTO,
 	MenuResponseDTO,
+	RemoveMenuItemRequestDTO,
 	UpdateMenuRequestDTO
 } from '../dto/menu.dto';
 import { RestaurantService } from './restaurant.service';
@@ -68,6 +69,34 @@ export class MenuService {
 		await this.menuRepo.createMenuItems(menuItems);
 		const updatedMenuItems = await this.menuRepo.getMenuItems(menuId);
 		return this.buildMenuItemResponse(updatedMenuItems);
+	}
+
+	@Transactional()
+	async removeItemFromRestaurantMenu(request: RemoveMenuItemRequestDTO): Promise<void> {
+		const { restaurantId, menuId, itemId, userId } = request;
+
+		// Validate user owns the restaurant
+		const restaurant = await this.restaurantService.getRestaurantById(restaurantId);
+		this.restaurantService.validateUserIsOwner(restaurant, userId);
+
+		// Validate menu belongs to restaurant
+		const menu = await this.getRestaurantMenuById(menuId);
+		this.validateMenuBelongsToRestaurant(menu, restaurantId);
+
+		// Validate item exists in the menu
+		const menuItem = menu.menuItems.find((menuItem) => menuItem.itemId === itemId);
+		if (!menuItem) {
+			throw new ApplicationError(ErrMessages.menu.MenuItemNotFound, StatusCodes.NOT_FOUND);
+		}
+
+		// Check if there are active orders for this menu item
+		const hasActiveOrders = await this.orderService.hasActiveOrdersForMenuItem(menuId, itemId);
+		if (hasActiveOrders) {
+			throw new ApplicationError(ErrMessages.menu.MenuItemHasActiveOrders, StatusCodes.BAD_REQUEST);
+		}
+
+		// Remove the menu item
+		await this.menuRepo.removeMenuItem(menuId, itemId);
 	}
 
 	/**
