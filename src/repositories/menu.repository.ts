@@ -68,7 +68,7 @@ export class MenuRepository {
 	}
 
 	async deleteMenu(menuId: number): Promise<void> {
-		await this.menuRepo.update(menuId, { isActive: false });
+		await this.menuRepo.update(menuId, { isDeleted: true, isActive: false });
 	}
 
 	async getMenuItemsByItemIds(menuId: number, itemIds: number[]): Promise<MenuItem[]> {

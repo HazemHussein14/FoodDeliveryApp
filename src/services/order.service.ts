@@ -607,4 +607,14 @@ export class OrderService {
 				return 0;
 		}
 	}
+
+	/**
+	 * Check if there are any active orders containing items from the given menu
+	 *
+	 * @param menuId - ID of the menu to check
+	 * @returns true if there are active orders, false otherwise
+	 */
+	async hasActiveOrdersForMenu(menuId: number): Promise<boolean> {
+		return await this.orderRepo.hasActiveOrdersForMenu(menuId);
+	}
 }

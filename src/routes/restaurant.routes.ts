@@ -1,7 +1,13 @@
 import { Router } from 'express';
 import { validateRequest } from '../middlewares/validate-request.middleware';
 import { MenuController } from '../controllers';
-import { addItemsToMenuBodySchema, createMenuBodySchema, menuParamSchema, restaurantParamSchema } from '../validators';
+import {
+	addItemsToMenuBodySchema,
+	createMenuBodySchema,
+	menuParamSchema,
+	restaurantParamSchema,
+	deleteMenuBodySchema
+} from '../validators';
 const RestaurantRouter = Router();
 
 const menuController = new MenuController();
@@ -52,8 +58,8 @@ RestaurantRouter.put(
 );
 
 RestaurantRouter.delete(
-	'/menu',
-	// validateRequest({ body: menuController.deleteRestaurantMenuSchema }),
+	'/:restaurantId/menus/:menuId',
+	validateRequest({ params: menuParamSchema, body: deleteMenuBodySchema }),
 	menuController.deleteRestaurantMenu.bind(menuController)
 );
 

@@ -27,3 +27,7 @@ export const addItemsToMenuBodySchema = Joi.object<AddItemsToMenuRequestDTO>({
 		.min(1)
 		.required()
 });
+
+export const deleteMenuBodySchema = Joi.object({
+	userId: idSchema.label('User ID')
+});
