@@ -72,6 +72,7 @@ export class MenuService {
 	 * @returns The requested menu.
 	 */
 	async getRestaurantMenuById(menuId: number): Promise<Menu> {
+    // update it to get menu with menuId & restaurantId
 		const menu = await this.menuRepo.getMenuWithItemsDetails(menuId);
 		if (!menu) {
 			throw new ApplicationError(ErrMessages.menu.MenuNotFound, StatusCodes.NOT_FOUND);
@@ -100,6 +101,17 @@ export class MenuService {
 		}
 
 		await this.menuRepo.deleteMenu(menuId);
+	}
+
+	@Transactional()
+	async setDefaultRestaurantMenu(restaurantId: number, menuId: number, userId: number): Promise<void> {
+		const restaurant = await this.restaurantService.getRestaurantById(restaurantId);
+		this.restaurantService.validateUserIsOwner(restaurant, userId);
+
+		const menu = await this.getRestaurantMenuById(menuId);
+		this.validateMenuBelongsToRestaurant(menu, restaurantId);
+
+		await this.menuRepo.setDefaultMenu(restaurantId, menuId);
 	}
 
 	// Helper Methods
