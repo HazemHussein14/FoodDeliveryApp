@@ -6,7 +6,8 @@ import {
 	createMenuBodySchema,
 	menuParamSchema,
 	restaurantParamSchema,
-	deleteMenuBodySchema
+	deleteMenuBodySchema,
+	setDefaultMenuBodySchema
 } from '../validators';
 const RestaurantRouter = Router();
 
@@ -45,9 +46,9 @@ RestaurantRouter.get(
 	menuController.getRestaurantMenuHistory.bind(menuController)
 );
 
-RestaurantRouter.get(
-	'/menu/default',
-	// validateRequest({ body: menuController.setDefaultRestaurantMenuSchema }),
+RestaurantRouter.patch(
+	'/:restaurantId/menus/:menuId/default',
+	validateRequest({ params: menuParamSchema, body: setDefaultMenuBodySchema }),
 	menuController.setDefaultRestaurantMenu.bind(menuController)
 );
 
