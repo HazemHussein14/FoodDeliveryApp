@@ -3,15 +3,6 @@ export interface CreateMenuRequestDTO {
 	menuTitle: string;
 }
 
-export interface MenuResponseDTO {
-	menuId: number;
-	restaurantId: number;
-	menuTitle: string;
-	isDefaultMenu: boolean;
-	createdAt: string;
-	updatedAt: string;
-}
-
 export interface UpdateMenuRequestDTO {
 	userId: number;
 	menuId: number;
@@ -23,6 +14,22 @@ export interface AddItemsToMenuRequestDTO {
 	restaurantId: number;
 	menuId: number;
 	items: Array<{ itemId: number }>;
+}
+
+export interface RemoveMenuItemRequestDTO {
+	userId: number;
+	restaurantId: number;
+	menuId: number;
+	itemId: number;
+}
+
+export interface MenuResponseDTO {
+	menuId: number;
+	restaurantId: number;
+	menuTitle: string;
+	isDefaultMenu: boolean;
+	createdAt: string;
+	updatedAt: string;
 }
 
 export interface MenuItemResponseDTO {

@@ -84,7 +84,9 @@ export const ErrMessages = {
 		RestaurantMenuLimitReached: 'You have reached the maximum number of menus for this restaurant',
 		MenuItemAlreadyExists: 'Menu item already exists',
 		MenuNotBelongToRestaurant: 'Menu does not belong to this restaurant',
-		MenuHasActiveOrders: 'Menu has active orders and cannot be deleted.'
+		MenuHasActiveOrders: 'Menu has active orders and cannot be deleted.',
+		MenuItemHasActiveOrders: 'Menu item has active orders and cannot be deleted.',
+		MenuItemNotFound: 'Menu item not found in this menu'
 	},
 
 	customer: {

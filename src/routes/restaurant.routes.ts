@@ -8,7 +8,9 @@ import {
 	restaurantParamSchema,
 	deleteMenuBodySchema,
 	setDefaultMenuBodySchema,
-	searchMenuItemsQuerySchema
+	searchMenuItemsQuerySchema,
+	menuItemParamSchema,
+	removeMenuItemBodySchema
 } from '../validators';
 const RestaurantRouter = Router();
 
@@ -27,6 +29,15 @@ RestaurantRouter.post(
 	'/:restaurantId/menus/:menuId/items',
 	validateRequest({ body: addItemsToMenuBodySchema, params: menuParamSchema }),
 	menuController.addItemsToRestaurantMenu.bind(menuController)
+);
+
+RestaurantRouter.delete(
+	'/:restaurantId/menus/:menuId/items/:itemId',
+	validateRequest({
+		params: menuItemParamSchema,
+		body: removeMenuItemBodySchema
+	}),
+	menuController.removeItemFromRestaurantMenu.bind(menuController)
 );
 
 RestaurantRouter.get(

@@ -614,4 +614,8 @@ export class OrderService {
 	async hasActiveOrdersForMenu(menuId: number): Promise<boolean> {
 		return await this.orderRepo.hasActiveOrdersForMenu(menuId);
 	}
+
+  async hasActiveOrdersForMenuItem(menuId: number, menuItemId: number): Promise<boolean> {
+    return await this.orderRepo.hasActiveOrdersForMenuItem(menuId, menuItemId);
+  }
 }

@@ -1,7 +1,12 @@
 import { Request, Response } from 'express';
 import { sendResponse } from '../utils/sendResponse';
 import { StatusCodes } from 'http-status-codes';
-import { AddItemsToMenuRequestDTO, CreateMenuRequestDTO, UpdateMenuRequestDTO } from '../dto/menu.dto';
+import {
+	AddItemsToMenuRequestDTO,
+	CreateMenuRequestDTO,
+	RemoveMenuItemRequestDTO,
+	UpdateMenuRequestDTO
+} from '../dto/menu.dto';
 import { MenuService } from '../services';
 import logger from '../config/logger';
 
@@ -27,6 +32,21 @@ export class MenuController {
 
 		const menuItems = await this.menuService.addItemsToRestaurantMenu(request);
 		sendResponse(res, StatusCodes.CREATED, 'Menu items added successfully', menuItems);
+	}
+
+	async removeItemFromRestaurantMenu(req: Request, res: Response) {
+		const { restaurantId, menuId, itemId } = req.validated?.params;
+		const { userId } = req.validated?.body;
+
+		const request: RemoveMenuItemRequestDTO = {
+			restaurantId,
+			menuId,
+			itemId,
+			userId
+		};
+
+		await this.menuService.removeItemFromRestaurantMenu(request);
+		sendResponse(res, StatusCodes.OK, 'Menu item removed successfully');
 	}
 
 	async getRestaurantMenuById(req: Request, res: Response) {
