@@ -5,12 +5,13 @@ import { MenuRepository } from '../repositories';
 import { Menu, MenuItem } from '../models';
 import { AddItemsToMenuRequestDTO, CreateMenuRequestDTO, MenuItemResponseDTO, MenuResponseDTO } from '../dto/menu.dto';
 import { RestaurantService } from './restaurant.service';
-import logger from '../config/logger';
+import { OrderService } from './order.service';
 
 const MAX_MENUS_PER_RESTAURANT = 3;
 
 export class MenuService {
 	private readonly menuRepo = new MenuRepository();
+	private readonly orderService = new OrderService();
 	private readonly restaurantService = new RestaurantService();
 	/**
 	 * Creates a new menu for a restaurant.
@@ -63,8 +64,6 @@ export class MenuService {
 		return this.buildMenuItemResponse(updatedMenuItems);
 	}
 
-	// Helper Methods
-
 	/**
 	 * Gets a menu by its ID.
 	 *
@@ -84,6 +83,26 @@ export class MenuService {
 		const menus = await this.menuRepo.getRestaurantMenus(restaurantId);
 		return menus.map((menu) => this.buildMenuResponse(menu));
 	}
+
+	@Transactional()
+	async deleteRestaurantMenu(restaurantId: number, menuId: number, userId: number): Promise<void> {
+		const restaurant = await this.restaurantService.getRestaurantById(restaurantId);
+		this.restaurantService.validateUserIsOwner(restaurant, userId);
+
+		const menu = await this.getRestaurantMenuById(menuId);
+		this.validateMenuBelongsToRestaurant(menu, restaurantId);
+
+		this.validateMenuBelongsToRestaurant(menu, restaurantId);
+
+		const hasActiveOrders = await this.orderService.hasActiveOrdersForMenu(menuId);
+		if (hasActiveOrders) {
+			throw new ApplicationError(ErrMessages.menu.MenuHasActiveOrders, StatusCodes.BAD_REQUEST);
+		}
+
+		await this.menuRepo.deleteMenu(menuId);
+	}
+
+	// Helper Methods
 
 	/**
 	 * Extracts item IDs from an array of items.
