@@ -12,7 +12,8 @@
 		"format": "prettier --write \"src/**/*.ts\"",
 		"format:check": "prettier --check \"src/**/*.ts\"",
 		"test": "jest",
-		"seed": "npx ts-node ./src/database/seeders/index.ts"
+		"seed": "npx ts-node ./src/database/seeders/index.ts",
+		"seed:high-memory": "NODE_OPTIONS=\"--max-old-space-size=8192\" npx ts-node ./src/database/seeders/index.ts"
 	},
 	"keywords": [],
 	"author": "",
