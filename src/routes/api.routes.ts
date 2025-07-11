@@ -7,6 +7,7 @@ import AuthRouter from './auth.route';
 import CustomerRouter from './customer.routes';
 import RestaurantRouter from './restaurant.routes';
 import SettingRouter from './setting.routes';
+import MenuRouter from './menu.routes';
 
 const ApiRouter = Router();
 
@@ -18,5 +19,6 @@ ApiRouter.use('/auth', AuthRouter);
 ApiRouter.use('/customers', CustomerRouter);
 ApiRouter.use('/restaurants', RestaurantRouter);
 ApiRouter.use('/settings', SettingRouter);
+ApiRouter.use('/menus', MenuRouter);
 
 export default ApiRouter;
