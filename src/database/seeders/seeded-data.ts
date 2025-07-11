@@ -17,7 +17,8 @@ import {
 	Role,
 	User,
 	UserRole,
-	UserType
+	UserType,
+	Setting
 } from '../../models';
 import { SeedData } from '.';
 import { faker } from '@faker-js/faker';
@@ -335,6 +336,33 @@ const orderItemSeedData: SeedData<OrderItem> = {
 	})
 };
 
+// Settings seed data
+const settingSeedData: SeedData<Setting> = {
+	entity: Setting,
+	data: [
+		{
+			key: 'max_menus_per_restaurant',
+			value: 3
+		},
+		{
+			key: 'default_service_fee_percentage',
+			value: 5.0
+		},
+		{
+			key: 'default_delivery_fee_percentage',
+			value: 8.0
+		},
+		{
+			key: 'max_items_per_menu',
+			value: 50
+		},
+		{
+			key: 'order_timeout_minutes',
+			value: 30
+		}
+	]
+};
+
 const seedData = [
 	// users - 87,000 users total (80k customers, 5k restaurants, 2k staff)
 	userTypesData, // 4 records (added restaurant type)
@@ -361,7 +389,10 @@ const seedData = [
 	cartSeedData, // 40,000 records
 	cartItemSeedData, // 120,000 records
 	orderSeedData, // 1,000,000 records
-	orderItemSeedData // 3,000,000 records
+	orderItemSeedData, // 3,000,000 records
+
+	// settings - application configuration
+	settingSeedData // 5 records
 ];
 
 export default seedData;

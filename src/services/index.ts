@@ -5,3 +5,4 @@ export * from './restaurant.service';
 export * from './menu.service';
 export * from './cart.service';
 export * from './payment.service';
+export * from './setting.service'
