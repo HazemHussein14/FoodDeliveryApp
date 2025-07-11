@@ -23,8 +23,17 @@ export class RestaurantService {
 		return restaurant;
 	}
 
-	async validateUserOwnsActiveRestaurant(restaurantId: number, userId: number) {
-		const restaurant = await this.getRestaurantById(restaurantId);
+	async getRestaurantByUserIdAndRestaurantId(userId: number) {
+		const restaurant = await this.restaurantRepo.getRestaurantByUserId(userId);
+
+		if (!restaurant) {
+			throw new ApplicationError(ErrMessages.auth.AccessDenied, StatusCodes.NOT_FOUND);
+		}
+		return restaurant;
+	}
+
+	async validateUserOwnsActiveRestaurant(userId: number) {
+		const restaurant = await this.getRestaurantByUserId(userId);
 		this.validateUserIsOwner(restaurant, userId);
 		this.validateRestaurantIsActive(restaurant);
 		return restaurant;

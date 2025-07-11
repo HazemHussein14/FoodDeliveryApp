@@ -14,8 +14,7 @@ export class MenuController {
 	private readonly menuService = new MenuService();
 	async createRestaurantMenu(req: Request, res: Response) {
 		const createMenuRequest: CreateMenuRequestDTO = req.validated?.body;
-		const restaurantId = req.validated?.params.restaurantId;
-		const menu = await this.menuService.createRestaurantMenu(restaurantId, createMenuRequest);
+		const menu = await this.menuService.createRestaurantMenu(createMenuRequest);
 		sendResponse(res, StatusCodes.CREATED, 'Menu created successfully', menu);
 	}
 
@@ -71,26 +70,26 @@ export class MenuController {
 	}
 
 	async updateRestaurantMenu(req: Request, res: Response) {
-		const { restaurantId, menuId } = req.validated?.params;
+		const { menuId } = req.validated?.params;
 		const updateMenuRequest: UpdateMenuRequestDTO = {
 			...req.validated?.body,
 			menuId
 		};
-		const menu = await this.menuService.updateRestaurantMenu(restaurantId, updateMenuRequest);
+		const menu = await this.menuService.updateRestaurantMenu(updateMenuRequest);
 		sendResponse(res, StatusCodes.OK, 'Menu updated successfully', menu);
 	}
 
 	async deleteRestaurantMenu(req: Request, res: Response) {
-		const { restaurantId, menuId } = req.validated?.params;
+		const { menuId } = req.validated?.params;
 		const { userId } = req.validated?.body;
-		await this.menuService.deleteRestaurantMenu(restaurantId, menuId, userId);
+		await this.menuService.deleteRestaurantMenu(menuId, userId);
 		sendResponse(res, StatusCodes.NO_CONTENT, 'Menu deleted successfully');
 	}
 
 	async setDefaultRestaurantMenu(req: Request, res: Response) {
-		const { restaurantId, menuId } = req.validated?.params;
+		const { menuId } = req.validated?.params;
 		const { userId } = req.validated?.body;
-		await this.menuService.setDefaultRestaurantMenu(restaurantId, menuId, userId);
+		await this.menuService.setDefaultRestaurantMenu(menuId, userId);
 		sendResponse(res, StatusCodes.OK, 'Default menu set successfully');
 	}
 

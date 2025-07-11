@@ -20,6 +20,7 @@ export class MenuService {
 	private readonly menuRepo = new MenuRepository();
 	private readonly orderService = new OrderService();
 	private readonly restaurantService = new RestaurantService();
+	
 	/**
 	 * Creates a new menu for a restaurant.
 	 *
@@ -34,25 +35,23 @@ export class MenuService {
 	 * @throws {ApplicationError} If a menu with the same title exists for the restaurant.
 	 */
 	@Transactional()
-	async createRestaurantMenu(restaurantId: number, request: CreateMenuRequestDTO) {
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, request.userId);
+	async createRestaurantMenu(request: CreateMenuRequestDTO) {
+		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(request.userId);
 
 		const restaurantMenus = restaurant.menus.filter((menu) => !menu.isDeleted);
 
 		this.validateMenuCountAcrossRestaurant(restaurantMenus);
 		this.validateUniqueMenuTitleAcrossRestaurant(restaurantMenus, request.menuTitle);
 
-		const menuToCreate = Menu.buildMenu(restaurantId, request);
-		const savedMenu = await this.menuRepo.createMenu(menuToCreate);
-
-		return this.buildMenuResponse(savedMenu);
+		const createdMenu = await this.createMenu(restaurant.restaurantId, request);
+		return this.buildMenuResponse(createdMenu);
 	}
 
 	@Transactional()
 	async addItemsToRestaurantMenu(request: AddItemsToMenuRequestDTO) {
-		const { menuId, items, restaurantId, userId } = request;
+		const { menuId, items, userId } = request;
 
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, userId);
+		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(userId);
 		const menu = this.findRestaurantMenu(restaurant, menuId);
 
 		const itemIds = this.extractItemIds(items);
@@ -67,10 +66,10 @@ export class MenuService {
 
 	@Transactional()
 	async removeItemFromRestaurantMenu(request: RemoveMenuItemRequestDTO): Promise<void> {
-		const { restaurantId, menuId, itemId, userId } = request;
+		const { menuId, itemId, userId } = request;
 
 		// Validate user owns the restaurant
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, userId);
+		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(userId);
 
 		// Validate menu belongs to restaurant
 		const menu = this.findRestaurantMenu(restaurant, menuId);
@@ -109,9 +108,9 @@ export class MenuService {
 	}
 
 	@Transactional()
-	async deleteRestaurantMenu(restaurantId: number, menuId: number, userId: number): Promise<void> {
+	async deleteRestaurantMenu(menuId: number, userId: number): Promise<void> {
 		// Validate user owns the restaurant
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, userId);
+		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(userId);
 
 		// Validate menu belongs to restaurant
 		const menu = this.findRestaurantMenu(restaurant, menuId);
@@ -125,20 +124,20 @@ export class MenuService {
 	}
 
 	@Transactional()
-	async setDefaultRestaurantMenu(restaurantId: number, menuId: number, userId: number): Promise<void> {
+	async setDefaultRestaurantMenu(menuId: number, userId: number): Promise<void> {
 		// Validate user owns the restaurant
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, userId);
+		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(userId);
 
 		// Validate menu belongs to restaurant
 		const menu = this.findRestaurantMenu(restaurant, menuId);
 
-		await this.menuRepo.setDefaultMenu(restaurantId, menu.menuId);
+		await this.menuRepo.setDefaultMenu(restaurant.restaurantId, menu.menuId);
 	}
 
 	@Transactional()
-	async updateRestaurantMenu(restaurantId: number, request: UpdateMenuRequestDTO) {
+	async updateRestaurantMenu(request: UpdateMenuRequestDTO) {
 		// Validate user owns the restaurant
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, request.userId);
+		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(request.userId);
 
 		const restaurantMenus = restaurant.menus.filter((m) => !m.isDeleted && m.menuId !== request.menuId);
 		this.validateUniqueMenuTitleAcrossRestaurant(restaurantMenus, request.menuTitle);
@@ -154,6 +153,12 @@ export class MenuService {
 	}
 
 	// Helper Methods
+
+	private async createMenu(restaurantId: number, request: CreateMenuRequestDTO) {
+		const menuToCreate = Menu.buildMenu(restaurantId, request);
+		const createdMenu = await this.menuRepo.createMenu(menuToCreate);
+		return createdMenu;
+	}
 
 	/**
 	 * Extracts item IDs from an array of items.
