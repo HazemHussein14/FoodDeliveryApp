@@ -37,7 +37,7 @@ export class MenuRepository {
 
 	async getMenuByRestaurantIdAndMenuTitle(restaurantId: number, menuTitle: string): Promise<Menu | null> {
 		return await this.menuRepo.findOne({
-			where: { menuTitle, restaurantId }
+			where: { menuTitle, restaurantId, isDeleted: false }
 		});
 	}
 

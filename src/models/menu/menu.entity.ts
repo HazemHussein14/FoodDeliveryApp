@@ -12,7 +12,7 @@ export class Menu extends AbstractEntity {
 	@Column()
 	restaurantId!: number;
 
-	@Column({ type: 'varchar', length: 100 })
+	@Column({ type: 'varchar', length: 100, unique: true })
 	menuTitle!: string;
 
 	@Column({ default: false })

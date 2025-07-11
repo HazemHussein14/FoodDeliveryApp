@@ -20,7 +20,7 @@ export class MenuService {
 	private readonly menuRepo = new MenuRepository();
 	private readonly orderService = new OrderService();
 	private readonly restaurantService = new RestaurantService();
-	
+
 	/**
 	 * Creates a new menu for a restaurant.
 	 *
@@ -38,10 +38,10 @@ export class MenuService {
 	async createRestaurantMenu(request: CreateMenuRequestDTO) {
 		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(request.userId);
 
-		const restaurantMenus = restaurant.menus.filter((menu) => !menu.isDeleted);
+		this.validateMenuCountAcrossRestaurant(restaurant.menus);
 
-		this.validateMenuCountAcrossRestaurant(restaurantMenus);
-		this.validateUniqueMenuTitleAcrossRestaurant(restaurantMenus, request.menuTitle);
+		const menu = await this.menuRepo.getMenuByRestaurantIdAndMenuTitle(restaurant.restaurantId, request.menuTitle);
+		this.validateUniqueMenuTitleAcrossRestaurant(menu);
 
 		const createdMenu = await this.createMenu(restaurant.restaurantId, request);
 		return this.buildMenuResponse(createdMenu);
@@ -139,8 +139,8 @@ export class MenuService {
 		// Validate user owns the restaurant
 		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(request.userId);
 
-		const restaurantMenus = restaurant.menus.filter((m) => !m.isDeleted && m.menuId !== request.menuId);
-		this.validateUniqueMenuTitleAcrossRestaurant(restaurantMenus, request.menuTitle);
+		const menu = await this.menuRepo.getMenuByRestaurantIdAndMenuTitle(restaurant.restaurantId, request.menuTitle);
+		this.validateUniqueMenuTitleAcrossRestaurant(menu);
 
 		const updatedMenu = await this.menuRepo.updateMenu(request.menuId, { menuTitle: request.menuTitle });
 
@@ -228,9 +228,8 @@ export class MenuService {
 	 * @throws ApplicationError if a menu with the same title already exists.
 	 */
 
-	private validateUniqueMenuTitleAcrossRestaurant(restaurantMenus: Menu[], menuTitle: string) {
-		const menuTitleExists = restaurantMenus.some((menu) => menu.menuTitle === menuTitle);
-		if (menuTitleExists) {
+	private validateUniqueMenuTitleAcrossRestaurant(menu: Menu | null) {
+		if (menu) {
 			throw new ApplicationError(ErrMessages.menu.MenuWithSameTitleExists, StatusCodes.BAD_REQUEST);
 		}
 	}
