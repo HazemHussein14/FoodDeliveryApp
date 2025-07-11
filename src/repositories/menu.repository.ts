@@ -25,13 +25,13 @@ export class MenuRepository {
 		});
 	}
 
-	async getMenuWithItemDetailsByRestaurant(restaurantId: number,menuId: number): Promise<Menu | null> {
+	async getMenuWithItemDetailsByRestaurant(restaurantId: number, menuId: number): Promise<Menu | null> {
 		return await this.menuRepo
 			.createQueryBuilder('menu')
 			.leftJoinAndSelect('menu.menuItems', 'menuItem')
 			.leftJoinAndSelect('menuItem.item', 'item')
 			.where('menu.menuId = :menuId', { menuId })
-      .andWhere('menu.restaurantId = :restaurantId', { restaurantId })
+			.andWhere('menu.restaurantId = :restaurantId', { restaurantId })
 			.getOne();
 	}
 
@@ -50,6 +50,15 @@ export class MenuRepository {
 	async getAllMenus(): Promise<Menu[]> {
 		return await this.menuRepo.find({
 			where: { isActive: true }
+		});
+	}
+
+	async getAllRestaurantMenus(restaurantId: number): Promise<Menu[]> {
+		return await this.menuRepo.find({
+			where: {
+				restaurantId,
+				isDeleted: false
+			}
 		});
 	}
 

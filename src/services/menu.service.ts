@@ -13,13 +13,13 @@ import {
 } from '../dto/menu.dto';
 import { RestaurantService } from './restaurant.service';
 import { OrderService } from './order.service';
-
-const MAX_MENUS_PER_RESTAURANT = 3;
+import { SettingService } from './setting.service';
 
 export class MenuService {
 	private readonly menuRepo = new MenuRepository();
 	private readonly orderService = new OrderService();
 	private readonly restaurantService = new RestaurantService();
+	private readonly settingService = new SettingService();
 
 	/**
 	 * Creates a new menu for a restaurant.
@@ -38,10 +38,9 @@ export class MenuService {
 	async createRestaurantMenu(request: CreateMenuRequestDTO) {
 		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(request.userId);
 
-		this.validateMenuCountAcrossRestaurant(restaurant.menus);
+		await this.validateMenuCountAcrossRestaurant(restaurant.restaurantId);
 
-		const menu = await this.menuRepo.getMenuByRestaurantIdAndMenuTitle(restaurant.restaurantId, request.menuTitle);
-		this.validateUniqueMenuTitleAcrossRestaurant(menu);
+		await this.validateUniqueMenuTitleAcrossRestaurant(restaurant.restaurantId, request.menuTitle);
 
 		const createdMenu = await this.createMenu(restaurant.restaurantId, request);
 		return this.buildMenuResponse(createdMenu);
@@ -139,8 +138,7 @@ export class MenuService {
 		// Validate user owns the restaurant
 		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(request.userId);
 
-		const menu = await this.menuRepo.getMenuByRestaurantIdAndMenuTitle(restaurant.restaurantId, request.menuTitle);
-		this.validateUniqueMenuTitleAcrossRestaurant(menu);
+		await this.validateUniqueMenuTitleAcrossRestaurant(restaurant.restaurantId, request.menuTitle);
 
 		const updatedMenu = await this.menuRepo.updateMenu(request.menuId, { menuTitle: request.menuTitle });
 
@@ -228,7 +226,8 @@ export class MenuService {
 	 * @throws ApplicationError if a menu with the same title already exists.
 	 */
 
-	private validateUniqueMenuTitleAcrossRestaurant(menu: Menu | null) {
+	private async validateUniqueMenuTitleAcrossRestaurant(restaurantId: number, menuTitle: string) {
+		const menu = await this.menuRepo.getMenuByRestaurantIdAndMenuTitle(restaurantId, menuTitle);
 		if (menu) {
 			throw new ApplicationError(ErrMessages.menu.MenuWithSameTitleExists, StatusCodes.BAD_REQUEST);
 		}
@@ -240,8 +239,10 @@ export class MenuService {
 	 * @param restaurantMenus - Array of existing menus for the restaurant.
 	 * @throws ApplicationError if the restaurant has reached the maximum allowed number of menus.
 	 */
-	private validateMenuCountAcrossRestaurant(restaurantMenus: Menu[]) {
-		if (restaurantMenus.length >= MAX_MENUS_PER_RESTAURANT) {
+	private async validateMenuCountAcrossRestaurant(restauranId: number) {
+		const maxMenusPerRestaurant = await this.settingService.getMaxMenusPerRestaurant();
+		const restaurantMenus = await this.menuRepo.getAllRestaurantMenus(restauranId);
+		if (restaurantMenus.length >= maxMenusPerRestaurant) {
 			throw new ApplicationError(ErrMessages.menu.RestaurantMenuLimitReached, StatusCodes.BAD_REQUEST);
 		}
 	}
