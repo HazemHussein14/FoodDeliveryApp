@@ -51,16 +51,14 @@ export class MenuService {
 		const { menuId, items, userId } = request;
 
 		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(userId);
-		const menu = this.findRestaurantMenu(restaurant, menuId);
+		const menu = await this.getMenuByIdWithItemDetailsOrFail(menuId);
 
-		const itemIds = this.extractItemIds(items);
-		this.validateExistingMenuItems(menu.menuItems, itemIds);
-		this.validateItemsAreAvailable(itemIds);
+		// Filter out unavailable items
+		const availableItems = await this.filterUnavailableItems(items);
+		this.validateExistingMenuItems(menu.menuItems, availableItems);
 
-		const menuItems = MenuItem.buildMenuItems(menuId, items);
-		await this.menuRepo.createMenuItems(menuItems);
-		const updatedMenuItems = await this.menuRepo.getMenuItems(menuId);
-		return this.buildMenuItemResponse(updatedMenuItems);
+		const createdMenuItems = await this.createMenuItems(menuId, availableItems);
+		return this.buildMenuItemResponse(createdMenuItems);
 	}
 
 	@Transactional()
@@ -70,8 +68,10 @@ export class MenuService {
 		// Validate user owns the restaurant
 		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(userId);
 
+		const menu = await this.getMenuByIdWithItemDetailsOrFail(menuId);
+
 		// Validate menu belongs to restaurant
-		const menu = this.findRestaurantMenu(restaurant, menuId);
+		this.validateMenuBelongsToRestaurant(menu, restaurant.restaurantId);
 
 		// Validate item exists in the menu
 		const menuItem = menu.menuItems.find((menuItem) => menuItem.itemId === itemId);
@@ -89,6 +89,16 @@ export class MenuService {
 		await this.menuRepo.removeMenuItem(menuId, itemId);
 	}
 
+	async getMenuByIdWithItemDetailsOrFail(menuId: number) {
+		const menu = await this.menuRepo.getMenuByIdWithItemDetails(menuId);
+
+		if (!menu) {
+			throw new ApplicationError(ErrMessages.menu.MenuNotFound, StatusCodes.NOT_FOUND);
+		}
+
+		return menu;
+	}
+
 	/**
 	 * Gets a menu by its ID.
 	 *
@@ -96,8 +106,8 @@ export class MenuService {
 	 * @throws {ApplicationError} If the menu is not found.
 	 * @returns The requested menu.
 	 */
-	async getRestaurantMenuById(restaurantId: number, menuId: number): Promise<Menu | null> {
-		const menu = await this.menuRepo.getMenuWithItemDetailsByRestaurant(restaurantId, menuId);
+	async getMenuByIdWithItemDetails(menuId: number): Promise<Menu | null> {
+		const menu = await this.menuRepo.getMenuByIdWithItemDetails(menuId);
 		return menu;
 	}
 
@@ -158,6 +168,12 @@ export class MenuService {
 		return createdMenu;
 	}
 
+	private async createMenuItems(menuId: number, items: number[]) {
+		const menuItems = MenuItem.buildMenuItems(menuId, items);
+		const createdMenuItems = await this.menuRepo.createMenuItems(menuItems);
+		return createdMenuItems;
+	}
+
 	/**
 	 * Extracts item IDs from an array of items.
 	 *
@@ -178,24 +194,17 @@ export class MenuService {
 	}
 
 	/**
-	 * Validates that all the item IDs passed in are available for the restaurant.
+	 * Filters out unavailable items and returns only the available ones.
 	 *
-	 * @param itemIds - The item IDs to validate.
-	 *
-	 * @throws {ApplicationError} If any of the items are not available.
+	 * @param items - The item IDs to validate.
+	 * @returns Array of available item IDs.
 	 */
-	private async validateItemsAreAvailable(itemIds: number[]) {
-		const availableItems = await this.menuRepo.getAvailableItemsByIds(itemIds);
+	private async filterUnavailableItems(items: number[]): Promise<number[]> {
+		const availableItems = await this.menuRepo.getAvailableItemsByIds(items);
 		const availableItemIds = this.extractItemIds(availableItems);
 
-		const unavailableItemIds = itemIds.filter((id) => !availableItemIds.includes(id));
-
-		if (unavailableItemIds.length > 0) {
-			throw new ApplicationError(
-				`${ErrMessages.item.ItemNotAvailable}: ${unavailableItemIds.join(', ')}`,
-				StatusCodes.BAD_REQUEST
-			);
-		}
+		// Return only the available items instead of throwing an error
+		return items.filter((id) => availableItemIds.includes(id));
 	}
 
 	/**
@@ -215,6 +224,12 @@ export class MenuService {
 				`${ErrMessages.menu.MenuItemAlreadyExists}: ${newItemIdsExists.join(', ')}`,
 				StatusCodes.BAD_REQUEST
 			);
+		}
+	}
+
+	private async validateMenuBelongsToRestaurant(menu: Menu, restaurantId: number) {
+		if (menu.restaurantId !== restaurantId) {
+			throw new ApplicationError(ErrMessages.menu.MenuNotBelongToRestaurant);
 		}
 	}
 

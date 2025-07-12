@@ -34,11 +34,10 @@ export class MenuController {
 	}
 
 	async removeItemFromRestaurantMenu(req: Request, res: Response) {
-		const { restaurantId, menuId, itemId } = req.validated?.params;
+		const { menuId, itemId } = req.validated?.params;
 		const { userId } = req.validated?.body;
 
 		const request: RemoveMenuItemRequestDTO = {
-			restaurantId,
 			menuId,
 			itemId,
 			userId
@@ -48,9 +47,9 @@ export class MenuController {
 		sendResponse(res, StatusCodes.OK, 'Menu item removed successfully');
 	}
 
-	async getRestaurantMenuById(req: Request, res: Response) {
-		const { menuId, restaurantId } = req.validated?.params;
-		const menu = await this.menuService.getRestaurantMenuById(restaurantId, menuId);
+	async getMenuByIdWithItemDetails(req: Request, res: Response) {
+		const { menuId } = req.validated?.params;
+		const menu = await this.menuService.getMenuByIdWithItemDetails(menuId);
 		sendResponse(res, StatusCodes.OK, 'Menu fetched successfully', menu);
 	}
 

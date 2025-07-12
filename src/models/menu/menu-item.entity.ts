@@ -35,7 +35,7 @@ export class MenuItem extends AbstractEntity {
 	static buildMenuItems(menuId: number, items: AddItemsToMenuRequestDTO['items']): Partial<MenuItem>[] {
 		return items.map((item) => ({
 			menuId,
-			itemId: item.itemId
+			itemId: item
 		}));
 	}
 }

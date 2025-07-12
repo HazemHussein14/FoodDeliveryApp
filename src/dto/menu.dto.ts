@@ -13,12 +13,11 @@ export interface AddItemsToMenuRequestDTO {
 	userId: number;
 	restaurantId: number;
 	menuId: number;
-	items: Array<{ itemId: number }>;
+	items: number[];
 }
 
 export interface RemoveMenuItemRequestDTO {
 	userId: number;
-	restaurantId: number;
 	menuId: number;
 	itemId: number;
 }

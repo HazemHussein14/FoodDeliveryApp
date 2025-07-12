@@ -25,7 +25,7 @@ MenuRouter.post(
 MenuRouter.get(
 	'/:menuId',
 	validateRequest({ params: menuParamSchema }),
-	menuController.getRestaurantMenuById.bind(menuController)
+	menuController.getMenuByIdWithItemDetails.bind(menuController)
 );
 
 MenuRouter.get('/', menuController.getRestaurantMenus.bind(menuController));
