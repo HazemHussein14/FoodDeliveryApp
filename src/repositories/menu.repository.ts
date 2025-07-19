@@ -25,6 +25,15 @@ export class MenuRepository {
 		});
 	}
 
+	async getMenuByIdAndRestaurantId(menuId: number, restaurantId: number): Promise<Menu | null> {
+		return await this.menuRepo.findOne({
+			where: {
+				menuId: menuId,
+				restaurantId: restaurantId
+			}
+		});
+	}
+
 	async getMenuByIdWithItemDetails(menuId: number): Promise<Menu | null> {
 		return await this.menuRepo
 			.createQueryBuilder('menu')
@@ -141,7 +150,7 @@ export class MenuRepository {
 		return await this.itemRepo.find({
 			where: {
 				itemId: In(itemIds),
-				isAvailable: true,
+				isAvailable: true
 			}
 		});
 	}

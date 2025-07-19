@@ -190,8 +190,8 @@ export class OrderRepository {
 			.innerJoin('orderItem.menuItem', 'menuItem')
 			.innerJoin('order.orderStatus', 'orderStatus')
 			.where('menuItem.menuId = :menuId', { menuId })
-			.andWhere('orderStatus.statusName IN (:...activeStatuses)', {
-				activeStatuses: ['pending', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery']
+			.andWhere('orderStatus.statusName NOT IN (:...finishedStatus)', {
+				finishedStatus: ['cancelled', 'refunded', 'delivered']
 			})
 			.getCount();
 

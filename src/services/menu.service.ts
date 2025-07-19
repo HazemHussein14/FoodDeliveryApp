@@ -111,6 +111,16 @@ export class MenuService {
 		return menu;
 	}
 
+	async getMenuByIdAndRestaurantId(restaurantId: number, menuId: number) {
+		const menu = await this.menuRepo.getMenuByIdAndRestaurantId(menuId, restaurantId);
+
+		if (!menu) {
+			throw new ApplicationError(ErrMessages.menu.MenuNotFound, StatusCodes.NOT_FOUND);
+		}
+
+		return menu;
+	}
+
 	async getRestaurantMenus(restaurantId: number): Promise<Menu[] | []> {
 		const menus = await this.menuRepo.getRestaurantMenus(restaurantId);
 		return menus;
@@ -122,7 +132,7 @@ export class MenuService {
 		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(userId);
 
 		// Validate menu belongs to restaurant
-		const menu = this.findRestaurantMenu(restaurant, menuId);
+		const menu = await this.getMenuByIdAndRestaurantId(menuId, restaurant.restaurantId);
 
 		const hasActiveOrders = await this.orderService.hasActiveOrdersForMenu(menu.menuId);
 		if (hasActiveOrders) {
