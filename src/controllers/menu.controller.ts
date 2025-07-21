@@ -9,24 +9,26 @@ import {
 } from '../dto/menu.dto';
 import { MenuService } from '../services';
 import logger from '../config/logger';
+import { RestaurantOwnershipContext } from '../middlewares';
 
 export class MenuController {
 	private readonly menuService = new MenuService();
 	async createRestaurantMenu(req: Request, res: Response) {
-		const createMenuRequest: CreateMenuRequestDTO = req.validated?.body;
+		const { restaurant } = req.restaurantContext as RestaurantOwnershipContext;
+		const createMenuRequest: CreateMenuRequestDTO = {
+			restaurantId: restaurant.restaurantId,
+			menuTitle: req.validated?.body.menuTitle
+		};
 		const menu = await this.menuService.createRestaurantMenu(createMenuRequest);
 		sendResponse(res, StatusCodes.CREATED, 'Menu created successfully', menu);
 	}
 
 	async addItemsToRestaurantMenu(req: Request, res: Response) {
-		const { restaurantId, menuId } = req.validated?.params;
-		const { items, userId } = req.validated?.body;
-
+		const { menuId } = req.validated?.params;
+		const { items } = req.validated?.body;
 		const request: AddItemsToMenuRequestDTO = {
-			restaurantId,
 			menuId,
-			items,
-			userId
+			items
 		};
 
 		const menuItems = await this.menuService.addItemsToRestaurantMenu(request);
@@ -54,8 +56,8 @@ export class MenuController {
 	}
 
 	async getRestaurantMenus(req: Request, res: Response) {
-		const { restaurantId } = req.validated?.params;
-		const menus = await this.menuService.getRestaurantMenus(restaurantId);
+		const { restaurant } = req.restaurantContext as RestaurantOwnershipContext;
+		const menus = await this.menuService.getRestaurantMenus(restaurant.restaurantId);
 		sendResponse(res, StatusCodes.OK, 'Menus fetched successfully', menus);
 	}
 

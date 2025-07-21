@@ -25,7 +25,7 @@ export const isActiveRestaurantOwner = async (req: Request, res: Response, next:
 
 		const { userId, actorType } = req.user;
 
-		if (actorType !== 'restaurant_user') {
+		if (actorType !== 'staff') {
 			throw new ApplicationError(ErrMessages.restaurant.NotRestaurantUser, StatusCodes.FORBIDDEN);
 		}
 
@@ -35,7 +35,6 @@ export const isActiveRestaurantOwner = async (req: Request, res: Response, next:
 			throw new ApplicationError(ErrMessages.restaurant.NoActiveRestaurant, StatusCodes.FORBIDDEN);
 		}
 
-		// Add restaurant context to request for downstream services
 		req.restaurantContext = {
 			restaurant,
 			isOwner: true

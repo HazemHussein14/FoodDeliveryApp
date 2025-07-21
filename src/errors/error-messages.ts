@@ -69,8 +69,8 @@ export const ErrMessages = {
 		RestaurantNotAvailable:
 			'Sorry restaurant cannot process your order right now, try again later or choose different one',
 		RestaurantNotOpen: 'Restaurant is not open',
-		NotRestaurantUser: '',
-		NoActiveRestaurant: ''
+		NotRestaurantUser: 'You are not a restaurant user',
+		NoActiveRestaurant: 'There is no active restaurant',
 	},
 
 	item: {

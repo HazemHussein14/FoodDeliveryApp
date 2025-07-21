@@ -1,15 +1,13 @@
 import { Router } from 'express';
-import { validateRequest } from '../middlewares/validate-request.middleware';
+import { validateRequest, isAuthenticated, isActiveRestaurantOwner } from '../middlewares';
 import { MenuController } from '../controllers';
 import {
 	addItemsToMenuBodySchema,
 	createMenuBodySchema,
 	menuParamSchema,
-	restaurantParamSchema,
 	deleteMenuBodySchema,
 	setDefaultMenuBodySchema,
 	searchMenuItemsQuerySchema,
-	menuItemParamSchema,
 	removeMenuItemBodySchema
 } from '../validators';
 
@@ -18,6 +16,8 @@ const menuController = new MenuController();
 
 MenuRouter.post(
 	'/',
+	isAuthenticated,
+	isActiveRestaurantOwner,
 	validateRequest({ body: createMenuBodySchema }),
 	menuController.createRestaurantMenu.bind(menuController)
 );
@@ -28,7 +28,7 @@ MenuRouter.get(
 	menuController.getMenuByIdWithItemDetails.bind(menuController)
 );
 
-MenuRouter.get('/', menuController.getRestaurantMenus.bind(menuController));
+MenuRouter.get('/', isAuthenticated, isActiveRestaurantOwner, menuController.getRestaurantMenus.bind(menuController));
 
 MenuRouter.get(
 	'/:menuId/history',
@@ -62,8 +62,10 @@ MenuRouter.get(
 
 // Menu Items routes
 MenuRouter.post(
-	'/items',
-	validateRequest({ body: addItemsToMenuBodySchema }),
+	'/:menuId/items',
+	isAuthenticated,
+	isActiveRestaurantOwner,
+	validateRequest({ params: menuParamSchema, body: addItemsToMenuBodySchema }),
 	menuController.addItemsToRestaurantMenu.bind(menuController)
 );
 

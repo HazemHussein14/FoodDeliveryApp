@@ -36,21 +36,18 @@ export class MenuService {
 	 */
 	@Transactional()
 	async createRestaurantMenu(request: CreateMenuRequestDTO) {
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(request.userId);
+		await this.validateMenuCountAcrossRestaurant(request.restaurantId);
 
-		await this.validateMenuCountAcrossRestaurant(restaurant.restaurantId);
+		await this.validateUniqueMenuTitleAcrossRestaurant(request.restaurantId, request.menuTitle);
 
-		await this.validateUniqueMenuTitleAcrossRestaurant(restaurant.restaurantId, request.menuTitle);
-
-		const createdMenu = await this.createMenu(restaurant.restaurantId, request);
+		const createdMenu = await this.createMenu(request.restaurantId, request);
 		return this.buildMenuResponse(createdMenu);
 	}
 
 	@Transactional()
 	async addItemsToRestaurantMenu(request: AddItemsToMenuRequestDTO) {
-		const { menuId, items, userId } = request;
+		const { menuId, items } = request;
 
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(userId);
 		const menu = await this.getMenuByIdWithItemDetailsOrFail(menuId);
 
 		// Filter out unavailable items
@@ -58,7 +55,7 @@ export class MenuService {
 		this.validateExistingMenuItems(menu.menuItems, availableItems);
 
 		const createdMenuItems = await this.createMenuItems(menuId, availableItems);
-		return this.buildMenuItemResponse(createdMenuItems);
+		return createdMenuItems;
 	}
 
 	@Transactional()
@@ -122,7 +119,7 @@ export class MenuService {
 	}
 
 	async getRestaurantMenus(restaurantId: number): Promise<Menu[] | []> {
-		const menus = await this.menuRepo.getRestaurantMenus(restaurantId);
+		const menus = await this.menuRepo.getAllRestaurantMenus(restaurantId);
 		return menus;
 	}
 
@@ -264,9 +261,9 @@ export class MenuService {
 	 * @param restaurantMenus - Array of existing menus for the restaurant.
 	 * @throws ApplicationError if the restaurant has reached the maximum allowed number of menus.
 	 */
-	private async validateMenuCountAcrossRestaurant(restauranId: number) {
+	private async validateMenuCountAcrossRestaurant(restaurantId: number) {
 		const maxMenusPerRestaurant = await this.settingService.getMaxMenusPerRestaurant();
-		const restaurantMenus = await this.menuRepo.getAllRestaurantMenus(restauranId);
+		const restaurantMenus = await this.menuRepo.getAllRestaurantMenus(restaurantId);
 		if (restaurantMenus.length >= maxMenusPerRestaurant) {
 			throw new ApplicationError(ErrMessages.menu.RestaurantMenuLimitReached, StatusCodes.BAD_REQUEST);
 		}
@@ -287,13 +284,7 @@ export class MenuService {
 		return menuItems.map((menuItem) => ({
 			menuId: menuItem.menuId,
 			itemId: menuItem.itemId,
-			menuItemId: menuItem.menuItemId,
-			name: menuItem.item.name,
-			description: menuItem.item.description,
-			price: menuItem.item.price,
-			imagePath: menuItem.item.imagePath,
-			energyValCal: menuItem.item.energyValCal,
-			isAvailable: menuItem.item.isAvailable
+			menuItemId: menuItem.menuItemId
 		}));
 	}
 }
