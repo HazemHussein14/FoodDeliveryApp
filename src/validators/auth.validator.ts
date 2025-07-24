@@ -4,7 +4,7 @@ import { LoginDto, RegisterDto } from '../dto/auth.dto';
 export const loginSchema = Joi.object<LoginDto>({
 	email: Joi.string().email().required(),
 	password: Joi.string().min(6).required(),
-	role: Joi.string().valid('customer', 'staff').required()
+	role: Joi.string().valid('customer', 'restaurant').required()
 });
 
 export const registerSchema = Joi.object<RegisterDto>({
