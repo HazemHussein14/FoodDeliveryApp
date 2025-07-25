@@ -4,7 +4,7 @@ export interface CreateMenuRequestDTO {
 }
 
 export interface UpdateMenuRequestDTO {
-	userId: number;
+	restaurantId: number;
 	menuId: number;
 	menuTitle: string;
 }
@@ -15,7 +15,7 @@ export interface AddItemsToMenuRequestDTO {
 }
 
 export interface RemoveMenuItemRequestDTO {
-	userId: number;
+	restaurantId: number;
 	menuId: number;
 	itemId: number;
 }

@@ -40,6 +40,7 @@ export class MenuRepository {
 			.leftJoinAndSelect('menu.menuItems', 'menuItem')
 			.leftJoinAndSelect('menuItem.item', 'item')
 			.where('menu.menuId = :menuId', { menuId })
+			.andWhere('menu.isDeleted = false')
 			.getOne();
 	}
 
@@ -177,13 +178,12 @@ export class MenuRepository {
 		await this.itemRepo.update(itemId, { isAvailable: false });
 	}
 
-	async searchItems(restaurantId: number, menuId: number, query: string): Promise<Item[]> {
+	async searchItems(menuId: number, query: string): Promise<Item[]> {
 		return await this.itemRepo
 			.createQueryBuilder('item')
 			.innerJoin('item.menuItems', 'menuItem')
 			.innerJoin('menuItem.menu', 'menu')
-			.where('menu.restaurantId = :restaurantId', { restaurantId })
-			.andWhere('menu.menuId = :menuId', { menuId })
+			.where('menu.menuId = :menuId', { menuId })
 			.andWhere('item.name ILIKE :query', { query: `%${query}%` })
 			.andWhere('item.isAvailable = :isAvailable', { isAvailable: true })
 			.getMany();

@@ -14,14 +14,14 @@ export class RestaurantRepository {
 		return await this.restaurantRepo.save(restaurant);
 	}
 
-	async getRestaurantById(restaurantId: number): Promise<Restaurant | null> {
-		return await this.restaurantRepo
-			.createQueryBuilder('restaurant')
-			.leftJoinAndSelect('restaurant.restaurantSetting', 'restaurantSetting')
-			.leftJoinAndSelect('restaurant.menus', 'menus')
-			.where('restaurant.restaurant_id = :restaurantId', { restaurantId })
-			.getOne();
-	}
+	// async getRestaurantById(restaurantId: number): Promise<Restaurant | null> {
+	// 	return await this.restaurantRepo
+	// 		.createQueryBuilder('restaurant')
+	// 		.leftJoinAndSelect('restaurant.restaurantSetting', 'restaurantSetting')
+	// 		.leftJoinAndSelect('restaurant.menus', 'menus')
+	// 		.where('restaurant.restaurant_id = :restaurantId', { restaurantId })
+	// 		.getOne();
+	// }
 
 	async getRestaurantByUserId(userId: number): Promise<Restaurant | null> {
 		return await this.restaurantRepo.findOne({
@@ -30,10 +30,10 @@ export class RestaurantRepository {
 		});
 	}
 
-	async getActiveRestaurantByUserId(userId: number): Promise<Restaurant | null> {
+	async getRestaurantById(restaurantId: number): Promise<Restaurant | null> {
 		return await this.restaurantRepo.findOne({
 			where: {
-				userId
+				restaurantId
 			}
 		});
 	}

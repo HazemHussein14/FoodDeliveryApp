@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { ApplicationError, ErrMessages } from '../errors';
 import { RestaurantRepository } from '../repositories';
+import logger from '../config/logger';
 
 const restaurantRepo = new RestaurantRepository();
 
@@ -12,9 +13,10 @@ export const isActiveRestaurant = async (req: Request, res: Response, next: Next
 		}
 
 		const { actorId, actorType } = req.user;
+    logger.info(`actorId: ${actorId}, actorType: ${actorType}`);
 
 		if (actorType !== 'restaurant') {
-			throw new ApplicationError(ErrMessages.restaurant.NotRestaurantUser, StatusCodes.FORBIDDEN);
+			throw new ApplicationError(ErrMessages.auth.AccessDenied, StatusCodes.FORBIDDEN);
 		}
 
 		const restaurant = await restaurantRepo.getRestaurantById(actorId);

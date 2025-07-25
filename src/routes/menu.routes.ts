@@ -1,14 +1,13 @@
 import { Router } from 'express';
-import { validateRequest, isAuthenticated, isActiveRestaurantOwner } from '../middlewares';
+import { validateRequest, isAuthenticated, isActiveRestaurant } from '../middlewares';
 import { MenuController } from '../controllers';
 import {
 	addItemsToMenuBodySchema,
 	createMenuBodySchema,
 	menuParamSchema,
 	deleteMenuBodySchema,
-	setDefaultMenuBodySchema,
 	searchMenuItemsQuerySchema,
-	removeMenuItemBodySchema
+	removeMenuItemParamsSchema
 } from '../validators';
 
 const MenuRouter = Router();
@@ -17,9 +16,9 @@ const menuController = new MenuController();
 MenuRouter.post(
 	'/',
 	isAuthenticated,
-	isActiveRestaurantOwner,
+	isActiveRestaurant,
 	validateRequest({ body: createMenuBodySchema }),
-	menuController.createRestaurantMenu.bind(menuController)
+	menuController.createMenu.bind(menuController)
 );
 
 MenuRouter.get(
@@ -28,35 +27,35 @@ MenuRouter.get(
 	menuController.getMenuByIdWithItemDetails.bind(menuController)
 );
 
-MenuRouter.get('/', isAuthenticated, isActiveRestaurantOwner, menuController.getRestaurantMenus.bind(menuController));
-
-MenuRouter.get(
-	'/:menuId/history',
-	// validateRequest({ body: menuController.getRestaurantMenuHistorySchema }),
-	menuController.getRestaurantMenuHistory.bind(menuController)
-);
+MenuRouter.get('/', isAuthenticated, isActiveRestaurant, menuController.getRestaurantMenus.bind(menuController));
 
 MenuRouter.patch(
 	'/:menuId/default',
-	validateRequest({ body: setDefaultMenuBodySchema }),
+	isAuthenticated,
+	isActiveRestaurant,
+	validateRequest({ params: menuParamSchema }),
 	menuController.setDefaultRestaurantMenu.bind(menuController)
 );
 
 MenuRouter.put(
 	'/:menuId',
-	validateRequest({ body: createMenuBodySchema }),
+	isAuthenticated,
+	isActiveRestaurant,
+	validateRequest({ body: createMenuBodySchema, params: menuParamSchema }),
 	menuController.updateRestaurantMenu.bind(menuController)
 );
 
 MenuRouter.delete(
 	'/:menuId',
-	validateRequest({ body: deleteMenuBodySchema }),
+	isAuthenticated,
+	isActiveRestaurant,
+	validateRequest({ params: menuParamSchema }),
 	menuController.deleteRestaurantMenu.bind(menuController)
 );
 
 MenuRouter.get(
-	'/search',
-	validateRequest({ query: searchMenuItemsQuerySchema }),
+	'/:menuId/search',
+	validateRequest({ params: menuParamSchema, query: searchMenuItemsQuerySchema }),
 	menuController.searchForMenuItems.bind(menuController)
 );
 
@@ -64,14 +63,16 @@ MenuRouter.get(
 MenuRouter.post(
 	'/:menuId/items',
 	isAuthenticated,
-	isActiveRestaurantOwner,
+	isActiveRestaurant,
 	validateRequest({ params: menuParamSchema, body: addItemsToMenuBodySchema }),
-	menuController.addItemsToRestaurantMenu.bind(menuController)
+	menuController.addItemsToMenu.bind(menuController)
 );
 
 MenuRouter.delete(
-	'/items/:itemId',
-	validateRequest({ body: removeMenuItemBodySchema }),
-	menuController.removeItemFromRestaurantMenu.bind(menuController)
+	'/:menuId/items/:itemId',
+	isAuthenticated,
+	isActiveRestaurant,
+	validateRequest({ params: removeMenuItemParamsSchema }),
+	menuController.removeItemFromMenu.bind(menuController)
 );
 export default MenuRouter;

@@ -2,23 +2,20 @@ import { StatusCodes } from 'http-status-codes';
 import { ErrMessages, ApplicationError } from '../errors';
 import { Transactional } from 'typeorm-transactional';
 import { MenuRepository } from '../repositories';
-import { Menu, MenuItem, Restaurant } from '../models';
+import { Menu, MenuItem } from '../models';
 import {
 	AddItemsToMenuRequestDTO,
 	CreateMenuRequestDTO,
-	MenuItemResponseDTO,
 	MenuResponseDTO,
 	RemoveMenuItemRequestDTO,
 	UpdateMenuRequestDTO
 } from '../dto/menu.dto';
-import { RestaurantService } from './restaurant.service';
 import { OrderService } from './order.service';
 import { SettingService } from './setting.service';
 
 export class MenuService {
 	private readonly menuRepo = new MenuRepository();
 	private readonly orderService = new OrderService();
-	private readonly restaurantService = new RestaurantService();
 	private readonly settingService = new SettingService();
 
 	/**
@@ -35,17 +32,17 @@ export class MenuService {
 	 * @throws {ApplicationError} If a menu with the same title exists for the restaurant.
 	 */
 	@Transactional()
-	async createRestaurantMenu(request: CreateMenuRequestDTO) {
+	async createMenu(request: CreateMenuRequestDTO) {
 		await this.validateMenuCountAcrossRestaurant(request.restaurantId);
 
 		await this.validateUniqueMenuTitleAcrossRestaurant(request.restaurantId, request.menuTitle);
 
-		const createdMenu = await this.createMenu(request.restaurantId, request);
+		const createdMenu = await this.buildMenu(request.restaurantId, request);
 		return this.buildMenuResponse(createdMenu);
 	}
 
 	@Transactional()
-	async addItemsToRestaurantMenu(request: AddItemsToMenuRequestDTO) {
+	async addItemsToMenu(request: AddItemsToMenuRequestDTO) {
 		const { menuId, items } = request;
 
 		const menu = await this.getMenuByIdWithItemDetailsOrFail(menuId);
@@ -59,16 +56,13 @@ export class MenuService {
 	}
 
 	@Transactional()
-	async removeItemFromRestaurantMenu(request: RemoveMenuItemRequestDTO): Promise<void> {
-		const { menuId, itemId, userId } = request;
-
-		// Validate user owns the restaurant
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(userId);
+	async removeItemFromMenu(request: RemoveMenuItemRequestDTO): Promise<void> {
+		const { menuId, itemId, restaurantId } = request;
 
 		const menu = await this.getMenuByIdWithItemDetailsOrFail(menuId);
 
 		// Validate menu belongs to restaurant
-		this.validateMenuBelongsToRestaurant(menu, restaurant.restaurantId);
+		this.validateMenuBelongsToRestaurant(menu, restaurantId);
 
 		// Validate item exists in the menu
 		const menuItem = menu.menuItems.find((menuItem) => menuItem.itemId === itemId);
@@ -104,7 +98,7 @@ export class MenuService {
 	 * @returns The requested menu.
 	 */
 	async getMenuByIdWithItemDetails(menuId: number): Promise<Menu | null> {
-		const menu = await this.menuRepo.getMenuByIdWithItemDetails(menuId);
+		const menu = await this.getMenuByIdWithItemDetailsOrFail(menuId);
 		return menu;
 	}
 
@@ -124,12 +118,9 @@ export class MenuService {
 	}
 
 	@Transactional()
-	async deleteRestaurantMenu(menuId: number, userId: number): Promise<void> {
-		// Validate user owns the restaurant
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(userId);
-
+	async deleteRestaurantMenu(menuId: number, restaurantId: number): Promise<void> {
 		// Validate menu belongs to restaurant
-		const menu = await this.getMenuByIdAndRestaurantId(menuId, restaurant.restaurantId);
+		const menu = await this.getMenuByIdAndRestaurantId(restaurantId, menuId);
 
 		const hasActiveOrders = await this.orderService.hasActiveOrdersForMenu(menu.menuId);
 		if (hasActiveOrders) {
@@ -140,36 +131,30 @@ export class MenuService {
 	}
 
 	@Transactional()
-	async setDefaultRestaurantMenu(menuId: number, userId: number): Promise<void> {
-		// Validate user owns the restaurant
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(userId);
-
+	async setDefaultRestaurantMenu(menuId: number, restaurantId: number): Promise<void> {
 		// Validate menu belongs to restaurant
-		const menu = this.findRestaurantMenu(restaurant, menuId);
+		const menu = await this.getMenuByIdAndRestaurantId(restaurantId, menuId);
 
-		await this.menuRepo.setDefaultMenu(restaurant.restaurantId, menu.menuId);
+		await this.menuRepo.setDefaultMenu(restaurantId, menu.menuId);
 	}
 
 	@Transactional()
 	async updateRestaurantMenu(request: UpdateMenuRequestDTO) {
-		// Validate user owns the restaurant
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(request.userId);
-
-		await this.validateUniqueMenuTitleAcrossRestaurant(restaurant.restaurantId, request.menuTitle);
+		await this.validateUniqueMenuTitleAcrossRestaurant(request.restaurantId, request.menuTitle);
 
 		const updatedMenu = await this.menuRepo.updateMenu(request.menuId, { menuTitle: request.menuTitle });
 
 		return this.buildMenuResponse(updatedMenu!);
 	}
 
-	async searchForMenuItems(restaurantId: number, menuId: number, query: string) {
-		const items = await this.menuRepo.searchItems(restaurantId, menuId, query);
+	async searchForMenuItems(menuId: number, query: string) {
+		const items = await this.menuRepo.searchItems(menuId, query);
 		return items;
 	}
 
 	// Helper Methods
 
-	private async createMenu(restaurantId: number, request: CreateMenuRequestDTO) {
+	private async buildMenu(restaurantId: number, request: CreateMenuRequestDTO) {
 		const menuToCreate = Menu.buildMenu(restaurantId, request);
 		const createdMenu = await this.menuRepo.createMenu(menuToCreate);
 		return createdMenu;
@@ -190,14 +175,6 @@ export class MenuService {
 
 	private extractItemIds(items: any[]): number[] {
 		return items.map((item) => item.itemId);
-	}
-
-	private findRestaurantMenu(restaurant: Restaurant, menuId: number) {
-		const menu = restaurant.menus.find((menu: Menu) => menu.menuId === menuId);
-		if (!menu) {
-			throw new ApplicationError(ErrMessages.menu.MenuNotFound, StatusCodes.NOT_FOUND);
-		}
-		return menu;
 	}
 
 	/**
@@ -278,13 +255,5 @@ export class MenuService {
 			createdAt: menu.createdAt.toISOString(),
 			updatedAt: menu.updatedAt.toISOString()
 		};
-	}
-
-	private buildMenuItemResponse(menuItems: MenuItem[]): MenuItemResponseDTO[] {
-		return menuItems.map((menuItem) => ({
-			menuId: menuItem.menuId,
-			itemId: menuItem.itemId,
-			menuItemId: menuItem.menuItemId
-		}));
 	}
 }
