@@ -14,19 +14,27 @@ export class RestaurantRepository {
 		return await this.restaurantRepo.save(restaurant);
 	}
 
-	async getRestaurantById(restaurantId: number): Promise<Restaurant | null> {
-		return await this.restaurantRepo
-			.createQueryBuilder('restaurant')
-			.leftJoinAndSelect('restaurant.restaurantSetting', 'restaurantSetting')
-			.leftJoinAndSelect('restaurant.menus', 'menus')
-			.where('restaurant.restaurant_id = :restaurantId', { restaurantId })
-			.getOne();
-	}
+	// async getRestaurantById(restaurantId: number): Promise<Restaurant | null> {
+	// 	return await this.restaurantRepo
+	// 		.createQueryBuilder('restaurant')
+	// 		.leftJoinAndSelect('restaurant.restaurantSetting', 'restaurantSetting')
+	// 		.leftJoinAndSelect('restaurant.menus', 'menus')
+	// 		.where('restaurant.restaurant_id = :restaurantId', { restaurantId })
+	// 		.getOne();
+	// }
 
 	async getRestaurantByUserId(userId: number): Promise<Restaurant | null> {
 		return await this.restaurantRepo.findOne({
 			where: { userId },
 			relations: ['restaurantSetting']
+		});
+	}
+
+	async getRestaurantById(restaurantId: number): Promise<Restaurant | null> {
+		return await this.restaurantRepo.findOne({
+			where: {
+				restaurantId
+			}
 		});
 	}
 
@@ -42,7 +50,10 @@ export class RestaurantRepository {
 		return await this.getRestaurantById(restaurantId);
 	}
 
-	async updateRestaurantStatus(restaurantId: number, status: 'open' | 'busy' | 'pause' | 'closed'): Promise<Restaurant | null> {
+	async updateRestaurantStatus(
+		restaurantId: number,
+		status: 'open' | 'busy' | 'pause' | 'closed'
+	): Promise<Restaurant | null> {
 		await this.restaurantRepo.update(restaurantId, { status });
 		return await this.getRestaurantById(restaurantId);
 	}

@@ -4,6 +4,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { sendResponse } from '../utils/sendResponse';
 import { config } from '../config/env';
 import { ApplicationError } from '../errors';
+import logger from '../config/logger';
 
 export interface AuthorizedUser {
 	userId: number;
@@ -25,7 +26,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
 	if (!token) throw new ApplicationError('Token missing', StatusCodes.UNAUTHORIZED);
 
 	try {
-		const decoded = jwt.verify(token as string, config.jwt.secret) as JwtPayload;
+		const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload;
 		req.user = decoded as AuthorizedUser;
 		next();
 	} catch (err) {

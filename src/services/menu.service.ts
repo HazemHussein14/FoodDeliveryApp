@@ -2,24 +2,22 @@ import { StatusCodes } from 'http-status-codes';
 import { ErrMessages, ApplicationError } from '../errors';
 import { Transactional } from 'typeorm-transactional';
 import { MenuRepository } from '../repositories';
-import { Menu, MenuItem, Restaurant } from '../models';
+import { Menu, MenuItem } from '../models';
 import {
 	AddItemsToMenuRequestDTO,
 	CreateMenuRequestDTO,
-	MenuItemResponseDTO,
 	MenuResponseDTO,
 	RemoveMenuItemRequestDTO,
 	UpdateMenuRequestDTO
 } from '../dto/menu.dto';
-import { RestaurantService } from './restaurant.service';
 import { OrderService } from './order.service';
-
-const MAX_MENUS_PER_RESTAURANT = 3;
+import { SettingService } from './setting.service';
 
 export class MenuService {
 	private readonly menuRepo = new MenuRepository();
 	private readonly orderService = new OrderService();
-	private readonly restaurantService = new RestaurantService();
+	private readonly settingService = new SettingService();
+
 	/**
 	 * Creates a new menu for a restaurant.
 	 *
@@ -34,46 +32,37 @@ export class MenuService {
 	 * @throws {ApplicationError} If a menu with the same title exists for the restaurant.
 	 */
 	@Transactional()
-	async createRestaurantMenu(restaurantId: number, request: CreateMenuRequestDTO) {
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, request.userId);
+	async createMenu(request: CreateMenuRequestDTO) {
+		await this.validateMenuCountAcrossRestaurant(request.restaurantId);
 
-		const restaurantMenus = restaurant.menus.filter((menu) => !menu.isDeleted);
+		await this.validateUniqueMenuTitleAcrossRestaurant(request.restaurantId, request.menuTitle);
 
-		this.validateMenuCountAcrossRestaurant(restaurantMenus);
-		this.validateUniqueMenuTitleAcrossRestaurant(restaurantMenus, request.menuTitle);
-
-		const menuToCreate = Menu.buildMenu(restaurantId, request);
-		const savedMenu = await this.menuRepo.createMenu(menuToCreate);
-
-		return this.buildMenuResponse(savedMenu);
+		const createdMenu = await this.buildMenu(request.restaurantId, request);
+		return this.buildMenuResponse(createdMenu);
 	}
 
 	@Transactional()
-	async addItemsToRestaurantMenu(request: AddItemsToMenuRequestDTO) {
-		const { menuId, items, restaurantId, userId } = request;
+	async addItemsToMenu(request: AddItemsToMenuRequestDTO) {
+		const { menuId, items } = request;
 
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, userId);
-		const menu = this.findRestaurantMenu(restaurant, menuId);
+		const menu = await this.getMenuByIdWithItemDetailsOrFail(menuId);
 
-		const itemIds = this.extractItemIds(items);
-		this.validateExistingMenuItems(menu.menuItems, itemIds);
-		this.validateItemsAreAvailable(itemIds);
+		// Filter out unavailable items
+		const availableItems = await this.filterUnavailableItems(items);
+		this.validateExistingMenuItems(menu.menuItems, availableItems);
 
-		const menuItems = MenuItem.buildMenuItems(menuId, items);
-		await this.menuRepo.createMenuItems(menuItems);
-		const updatedMenuItems = await this.menuRepo.getMenuItems(menuId);
-		return this.buildMenuItemResponse(updatedMenuItems);
+		const createdMenuItems = await this.createMenuItems(menuId, availableItems);
+		return createdMenuItems;
 	}
 
 	@Transactional()
-	async removeItemFromRestaurantMenu(request: RemoveMenuItemRequestDTO): Promise<void> {
-		const { restaurantId, menuId, itemId, userId } = request;
+	async removeItemFromMenu(request: RemoveMenuItemRequestDTO): Promise<void> {
+		const { menuId, itemId, restaurantId } = request;
 
-		// Validate user owns the restaurant
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, userId);
+		const menu = await this.getMenuByIdWithItemDetailsOrFail(menuId);
 
 		// Validate menu belongs to restaurant
-		const menu = this.findRestaurantMenu(restaurant, menuId);
+		this.validateMenuBelongsToRestaurant(menu, restaurantId);
 
 		// Validate item exists in the menu
 		const menuItem = menu.menuItems.find((menuItem) => menuItem.itemId === itemId);
@@ -91,6 +80,16 @@ export class MenuService {
 		await this.menuRepo.removeMenuItem(menuId, itemId);
 	}
 
+	async getMenuByIdWithItemDetailsOrFail(menuId: number) {
+		const menu = await this.menuRepo.getMenuByIdWithItemDetails(menuId);
+
+		if (!menu) {
+			throw new ApplicationError(ErrMessages.menu.MenuNotFound, StatusCodes.NOT_FOUND);
+		}
+
+		return menu;
+	}
+
 	/**
 	 * Gets a menu by its ID.
 	 *
@@ -98,23 +97,30 @@ export class MenuService {
 	 * @throws {ApplicationError} If the menu is not found.
 	 * @returns The requested menu.
 	 */
-	async getRestaurantMenuById(restaurantId: number, menuId: number): Promise<Menu | null> {
-		const menu = await this.menuRepo.getMenuWithItemDetailsByRestaurant(restaurantId, menuId);
+	async getMenuByIdWithItemDetails(menuId: number): Promise<Menu | null> {
+		const menu = await this.getMenuByIdWithItemDetailsOrFail(menuId);
+		return menu;
+	}
+
+	async getMenuByIdAndRestaurantId(restaurantId: number, menuId: number) {
+		const menu = await this.menuRepo.getMenuByIdAndRestaurantId(menuId, restaurantId);
+
+		if (!menu) {
+			throw new ApplicationError(ErrMessages.menu.MenuNotFound, StatusCodes.NOT_FOUND);
+		}
+
 		return menu;
 	}
 
 	async getRestaurantMenus(restaurantId: number): Promise<Menu[] | []> {
-		const menus = await this.menuRepo.getRestaurantMenus(restaurantId);
+		const menus = await this.menuRepo.getAllRestaurantMenus(restaurantId);
 		return menus;
 	}
 
 	@Transactional()
-	async deleteRestaurantMenu(restaurantId: number, menuId: number, userId: number): Promise<void> {
-		// Validate user owns the restaurant
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, userId);
-
+	async deleteRestaurantMenu(menuId: number, restaurantId: number): Promise<void> {
 		// Validate menu belongs to restaurant
-		const menu = this.findRestaurantMenu(restaurant, menuId);
+		const menu = await this.getMenuByIdAndRestaurantId(restaurantId, menuId);
 
 		const hasActiveOrders = await this.orderService.hasActiveOrdersForMenu(menu.menuId);
 		if (hasActiveOrders) {
@@ -125,35 +131,40 @@ export class MenuService {
 	}
 
 	@Transactional()
-	async setDefaultRestaurantMenu(restaurantId: number, menuId: number, userId: number): Promise<void> {
-		// Validate user owns the restaurant
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, userId);
-
+	async setDefaultRestaurantMenu(menuId: number, restaurantId: number): Promise<void> {
 		// Validate menu belongs to restaurant
-		const menu = this.findRestaurantMenu(restaurant, menuId);
+		const menu = await this.getMenuByIdAndRestaurantId(restaurantId, menuId);
 
 		await this.menuRepo.setDefaultMenu(restaurantId, menu.menuId);
 	}
 
 	@Transactional()
-	async updateRestaurantMenu(restaurantId: number, request: UpdateMenuRequestDTO) {
-		// Validate user owns the restaurant
-		const restaurant = await this.restaurantService.validateUserOwnsActiveRestaurant(restaurantId, request.userId);
-
-		const restaurantMenus = restaurant.menus.filter((m) => !m.isDeleted && m.menuId !== request.menuId);
-		this.validateUniqueMenuTitleAcrossRestaurant(restaurantMenus, request.menuTitle);
+	async updateRestaurantMenu(request: UpdateMenuRequestDTO) {
+		await this.validateUniqueMenuTitleAcrossRestaurant(request.restaurantId, request.menuTitle);
 
 		const updatedMenu = await this.menuRepo.updateMenu(request.menuId, { menuTitle: request.menuTitle });
 
 		return this.buildMenuResponse(updatedMenu!);
 	}
 
-	async searchForMenuItems(restaurantId: number, menuId: number, query: string) {
-		const items = await this.menuRepo.searchItems(restaurantId, menuId, query);
+	async searchForMenuItems(menuId: number, query: string) {
+		const items = await this.menuRepo.searchItems(menuId, query);
 		return items;
 	}
 
 	// Helper Methods
+
+	private async buildMenu(restaurantId: number, request: CreateMenuRequestDTO) {
+		const menuToCreate = Menu.buildMenu(restaurantId, request);
+		const createdMenu = await this.menuRepo.createMenu(menuToCreate);
+		return createdMenu;
+	}
+
+	private async createMenuItems(menuId: number, items: number[]) {
+		const menuItems = MenuItem.buildMenuItems(menuId, items);
+		const createdMenuItems = await this.menuRepo.createMenuItems(menuItems);
+		return createdMenuItems;
+	}
 
 	/**
 	 * Extracts item IDs from an array of items.
@@ -166,33 +177,18 @@ export class MenuService {
 		return items.map((item) => item.itemId);
 	}
 
-	private findRestaurantMenu(restaurant: Restaurant, menuId: number) {
-		const menu = restaurant.menus.find((menu: Menu) => menu.menuId === menuId);
-		if (!menu) {
-			throw new ApplicationError(ErrMessages.menu.MenuNotFound, StatusCodes.NOT_FOUND);
-		}
-		return menu;
-	}
-
 	/**
-	 * Validates that all the item IDs passed in are available for the restaurant.
+	 * Filters out unavailable items and returns only the available ones.
 	 *
-	 * @param itemIds - The item IDs to validate.
-	 *
-	 * @throws {ApplicationError} If any of the items are not available.
+	 * @param items - The item IDs to validate.
+	 * @returns Array of available item IDs.
 	 */
-	private async validateItemsAreAvailable(itemIds: number[]) {
-		const availableItems = await this.menuRepo.getAvailableItemsByIds(itemIds);
+	private async filterUnavailableItems(items: number[]): Promise<number[]> {
+		const availableItems = await this.menuRepo.getAvailableItemsByIds(items);
 		const availableItemIds = this.extractItemIds(availableItems);
 
-		const unavailableItemIds = itemIds.filter((id) => !availableItemIds.includes(id));
-
-		if (unavailableItemIds.length > 0) {
-			throw new ApplicationError(
-				`${ErrMessages.item.ItemNotAvailable}: ${unavailableItemIds.join(', ')}`,
-				StatusCodes.BAD_REQUEST
-			);
-		}
+		// Return only the available items instead of throwing an error
+		return items.filter((id) => availableItemIds.includes(id));
 	}
 
 	/**
@@ -215,6 +211,12 @@ export class MenuService {
 		}
 	}
 
+	private async validateMenuBelongsToRestaurant(menu: Menu, restaurantId: number) {
+		if (menu.restaurantId !== restaurantId) {
+			throw new ApplicationError(ErrMessages.menu.MenuNotBelongToRestaurant);
+		}
+	}
+
 	/**
 	 * Validates that a menu title is unique across a restaurant's menus.
 	 *
@@ -223,9 +225,9 @@ export class MenuService {
 	 * @throws ApplicationError if a menu with the same title already exists.
 	 */
 
-	private validateUniqueMenuTitleAcrossRestaurant(restaurantMenus: Menu[], menuTitle: string) {
-		const menuTitleExists = restaurantMenus.some((menu) => menu.menuTitle === menuTitle);
-		if (menuTitleExists) {
+	private async validateUniqueMenuTitleAcrossRestaurant(restaurantId: number, menuTitle: string) {
+		const menu = await this.menuRepo.getMenuByRestaurantIdAndMenuTitle(restaurantId, menuTitle);
+		if (menu) {
 			throw new ApplicationError(ErrMessages.menu.MenuWithSameTitleExists, StatusCodes.BAD_REQUEST);
 		}
 	}
@@ -236,8 +238,10 @@ export class MenuService {
 	 * @param restaurantMenus - Array of existing menus for the restaurant.
 	 * @throws ApplicationError if the restaurant has reached the maximum allowed number of menus.
 	 */
-	private validateMenuCountAcrossRestaurant(restaurantMenus: Menu[]) {
-		if (restaurantMenus.length >= MAX_MENUS_PER_RESTAURANT) {
+	private async validateMenuCountAcrossRestaurant(restaurantId: number) {
+		const maxMenusPerRestaurant = await this.settingService.getMaxMenusPerRestaurant();
+		const restaurantMenus = await this.menuRepo.getAllRestaurantMenus(restaurantId);
+		if (restaurantMenus.length >= maxMenusPerRestaurant) {
 			throw new ApplicationError(ErrMessages.menu.RestaurantMenuLimitReached, StatusCodes.BAD_REQUEST);
 		}
 	}
@@ -251,19 +255,5 @@ export class MenuService {
 			createdAt: menu.createdAt.toISOString(),
 			updatedAt: menu.updatedAt.toISOString()
 		};
-	}
-
-	private buildMenuItemResponse(menuItems: MenuItem[]): MenuItemResponseDTO[] {
-		return menuItems.map((menuItem) => ({
-			menuId: menuItem.menuId,
-			itemId: menuItem.itemId,
-			menuItemId: menuItem.menuItemId,
-			name: menuItem.item.name,
-			description: menuItem.item.description,
-			price: menuItem.item.price,
-			imagePath: menuItem.item.imagePath,
-			energyValCal: menuItem.item.energyValCal,
-			isAvailable: menuItem.item.isAvailable
-		}));
 	}
 }

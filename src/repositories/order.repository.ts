@@ -41,7 +41,10 @@ export class OrderRepository {
 		const { page, limit, status, startDate, endDate, sortBy = 'createdAt', sortOrder = 'DESC' } = options;
 		const skip = (page - 1) * limit;
 
-		const queryBuilder = this.orderRepo.createQueryBuilder('order').leftJoinAndSelect('order.items', 'items').leftJoinAndSelect('order.orderStatus', 'status');
+		const queryBuilder = this.orderRepo
+			.createQueryBuilder('order')
+			.leftJoinAndSelect('order.items', 'items')
+			.leftJoinAndSelect('order.orderStatus', 'status');
 
 		if (status) {
 			queryBuilder.andWhere('status.statusName = :status', { status });
@@ -54,7 +57,11 @@ export class OrderRepository {
 			});
 		}
 
-		const [orders, total] = await queryBuilder.orderBy(`order.${sortBy}`, sortOrder).skip(skip).take(limit).getManyAndCount();
+		const [orders, total] = await queryBuilder
+			.orderBy(`order.${sortBy}`, sortOrder)
+			.skip(skip)
+			.take(limit)
+			.getManyAndCount();
 
 		return { orders, total };
 	}
@@ -183,8 +190,8 @@ export class OrderRepository {
 			.innerJoin('orderItem.menuItem', 'menuItem')
 			.innerJoin('order.orderStatus', 'orderStatus')
 			.where('menuItem.menuId = :menuId', { menuId })
-			.andWhere('orderStatus.statusName IN (:...activeStatuses)', {
-				activeStatuses: ['pending', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery']
+			.andWhere('orderStatus.statusName NOT IN (:...finishedStatus)', {
+				finishedStatus: ['cancelled', 'refunded', 'delivered']
 			})
 			.getCount();
 
@@ -199,8 +206,8 @@ export class OrderRepository {
 			.innerJoin('order.orderStatus', 'orderStatus')
 			.where('menuItem.menuId = :menuId', { menuId })
 			.andWhere('menuItem.itemId = :menuItemId', { menuItemId })
-			.andWhere('orderStatus.statusName IN (:...activeStatuses)', {
-				activeStatuses: ['pending', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery']
+			.andWhere('orderStatus.statusName NOT IN (:...finishedStatus)', {
+				finishedStatus: ['cancelled', 'refunded', 'delivered']
 			})
 			.getCount();
 

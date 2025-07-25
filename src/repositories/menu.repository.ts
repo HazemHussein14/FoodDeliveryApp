@@ -25,19 +25,28 @@ export class MenuRepository {
 		});
 	}
 
-	async getMenuWithItemDetailsByRestaurant(restaurantId: number,menuId: number): Promise<Menu | null> {
+	async getMenuByIdAndRestaurantId(menuId: number, restaurantId: number): Promise<Menu | null> {
+		return await this.menuRepo.findOne({
+			where: {
+				menuId: menuId,
+				restaurantId: restaurantId
+			}
+		});
+	}
+
+	async getMenuByIdWithItemDetails(menuId: number): Promise<Menu | null> {
 		return await this.menuRepo
 			.createQueryBuilder('menu')
 			.leftJoinAndSelect('menu.menuItems', 'menuItem')
 			.leftJoinAndSelect('menuItem.item', 'item')
 			.where('menu.menuId = :menuId', { menuId })
-      .andWhere('menu.restaurantId = :restaurantId', { restaurantId })
+			.andWhere('menu.isDeleted = false')
 			.getOne();
 	}
 
 	async getMenuByRestaurantIdAndMenuTitle(restaurantId: number, menuTitle: string): Promise<Menu | null> {
 		return await this.menuRepo.findOne({
-			where: { menuTitle, restaurantId }
+			where: { menuTitle, restaurantId, isDeleted: false }
 		});
 	}
 
@@ -53,15 +62,24 @@ export class MenuRepository {
 		});
 	}
 
-	async getRestaurantMenus(restaurantId: number): Promise<Menu[]> {
-		return await this.menuRepo
-			.createQueryBuilder('menu')
-			.leftJoinAndSelect('menu.menuItems', 'menuItem')
-			.leftJoinAndSelect('menuItem.item', 'item')
-			.where('menu.restaurantId = :restaurantId', { restaurantId })
-			.andWhere('menu.isDeleted = :isDeleted', { isDeleted: false })
-			.getMany();
+	async getAllRestaurantMenus(restaurantId: number): Promise<Menu[] | []> {
+		return await this.menuRepo.find({
+			where: {
+				restaurantId,
+				isDeleted: false
+			}
+		});
 	}
+
+	// async getRestaurantMenus(restaurantId: number): Promise<Menu[]> {
+	// 	return await this.menuRepo
+	// 		.createQueryBuilder('menu')
+	// 		.leftJoinAndSelect('menu.menuItems', 'menuItem')
+	// 		.leftJoinAndSelect('menuItem.item', 'item')
+	// 		.where('menu.restaurantId = :restaurantId', { restaurantId })
+	// 		.andWhere('menu.isDeleted = :isDeleted', { isDeleted: false })
+	// 		.getMany();
+	// }
 
 	async updateMenu(menuId: number, data: Partial<Menu>): Promise<Menu | null> {
 		await this.menuRepo.update(menuId, data);
@@ -160,13 +178,12 @@ export class MenuRepository {
 		await this.itemRepo.update(itemId, { isAvailable: false });
 	}
 
-	async searchItems(restaurantId: number, menuId: number, query: string): Promise<Item[]> {
+	async searchItems(menuId: number, query: string): Promise<Item[]> {
 		return await this.itemRepo
 			.createQueryBuilder('item')
 			.innerJoin('item.menuItems', 'menuItem')
 			.innerJoin('menuItem.menu', 'menu')
-			.where('menu.restaurantId = :restaurantId', { restaurantId })
-			.andWhere('menu.menuId = :menuId', { menuId })
+			.where('menu.menuId = :menuId', { menuId })
 			.andWhere('item.name ILIKE :query', { query: `%${query}%` })
 			.andWhere('item.isAvailable = :isAvailable', { isAvailable: true })
 			.getMany();
