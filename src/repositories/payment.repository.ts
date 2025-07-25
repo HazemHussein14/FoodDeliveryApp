@@ -1,48 +1,57 @@
+import { StatusCodes } from 'http-status-codes';
 import { AppDataSource } from '../config/data-source';
-import { Transaction } from '../models/payment/transaction.entity';
-import { TransactionDetail } from '../models/payment/transaction-detail.entity';
-import { PaymentMethod } from '../models/payment/payment-method.entity';
-import { PaymentStatus } from '../models/payment/payment-status.entity';
+import logger from '../config/logger';
+import { TransactionDto } from '../dto';
+import { ApplicationError, ErrMessages } from '../errors';
+import { Transaction, TransactionDetail, PaymentMethod, TransactionStatus } from '../models';
 import { Repository } from 'typeorm';
+import { TransactionStatusEnum } from '../enums';
 
 export class PaymentRepository {
-	private transactionRepo: Repository<Transaction>;
-	private transactionDetailRepo: Repository<TransactionDetail>;
-	private paymentMethodRepo: Repository<PaymentMethod>;
-	private paymentStatusRepo: Repository<PaymentStatus>;
+	private readonly transactionRepo: Repository<Transaction>;
+	private readonly transactionDetailRepo: Repository<TransactionDetail>;
+	private readonly paymentMethodRepo: Repository<PaymentMethod>;
+	private readonly transactionStatusRepo: Repository<TransactionStatus>;
 
 	constructor() {
 		this.transactionRepo = AppDataSource.getRepository(Transaction);
 		this.transactionDetailRepo = AppDataSource.getRepository(TransactionDetail);
 		this.paymentMethodRepo = AppDataSource.getRepository(PaymentMethod);
-		this.paymentStatusRepo = AppDataSource.getRepository(PaymentStatus);
+		this.transactionStatusRepo = AppDataSource.getRepository(TransactionStatus);
 	}
 
 	// Transaction operations
-	async createTransaction(data: Partial<Transaction>): Promise<Transaction> {
-		const transaction = this.transactionRepo.create(data);
-		return await this.transactionRepo.save(transaction);
+	async createTransaction(transactionDto: TransactionDto): Promise<Transaction> {
+		try {
+			// Get the transaction status ID first
+			const transactionStatus = await this.getTransactionStatusByStatusName(transactionDto.transactionStatus);
+
+			// Build the transaction with proper status ID
+			const transaction = Transaction.buildTransaction(transactionDto, transactionStatus.transactionStatusId);
+
+			// Save and return
+			return await this.transactionRepo.save(transaction);
+		} catch (error) {
+			logger.error(`Error creating transaction: ${error}`);
+			throw error;
+		}
 	}
 
 	async getTransactionById(transactionId: number): Promise<Transaction | null> {
 		return await this.transactionRepo.findOne({
-			where: { transactionId },
-			relations: ['customer', 'paymentMethod', 'order', 'paymentStatus']
+			where: { transactionId }
 		});
 	}
 
 	async getTransactionsByCustomerId(customerId: number): Promise<Transaction[]> {
 		return await this.transactionRepo.find({
-			where: { customerId },
-			relations: ['customer', 'paymentMethod', 'order', 'paymentStatus'],
-			order: { createdAt: 'DESC' }
+			where: { customerId }
 		});
 	}
 
 	async getTransactionsByOrderId(orderId: number): Promise<Transaction[]> {
 		return await this.transactionRepo.find({
-			where: { orderId },
-			relations: ['customer', 'paymentMethod', 'order', 'paymentStatus']
+			where: { orderId }
 		});
 	}
 
@@ -51,8 +60,12 @@ export class PaymentRepository {
 		return await this.getTransactionById(transactionId);
 	}
 
-	async updateTransactionStatus(transactionId: number, paymentStatusId: number): Promise<Transaction | null> {
-		await this.transactionRepo.update(transactionId, { paymentStatusId });
+	async updateTransactionStatus(transactionId: number, status: TransactionStatusEnum): Promise<Transaction | null> {
+		const statusName = await this.getTransactionStatusByStatusName(status);
+		await this.transactionRepo.update(transactionId, {
+			status,
+			transactionStatusId: statusName.transactionStatusId
+		});
 		return await this.getTransactionById(transactionId);
 	}
 
@@ -84,23 +97,34 @@ export class PaymentRepository {
 	}
 
 	// Payment Status operations
-	async getAllPaymentStatuses(): Promise<PaymentStatus[]> {
-		return await this.paymentStatusRepo.find({
+	async getAllTransactionStatuses(): Promise<TransactionStatus[]> {
+		return await this.transactionStatusRepo.find({
 			where: { isActive: true }
 		});
 	}
 
-	async getPaymentStatusById(paymentStatusId: number): Promise<PaymentStatus | null> {
-		return await this.paymentStatusRepo.findOne({
-			where: { paymentStatusId }
+	async getTransactionStatusById(transactionStatusId: number): Promise<TransactionStatus | null> {
+		return await this.transactionStatusRepo.findOne({
+			where: { transactionStatusId }
 		});
+	}
+
+	async getTransactionStatusByStatusName(statusName: TransactionStatusEnum): Promise<TransactionStatus> {
+		const status = await this.transactionStatusRepo.findOne({
+			where: { status: statusName }
+		});
+
+		if (!status) {
+			throw new ApplicationError(ErrMessages.order.OrderStatusNotFound, StatusCodes.NOT_FOUND);
+		}
+
+		return status;
 	}
 
 	// Helper methods
 	async getTransactionByCode(transactionCode: string): Promise<Transaction | null> {
 		return await this.transactionRepo.findOne({
-			where: { transactionCode },
-			relations: ['customer', 'paymentMethod', 'order', 'paymentStatus']
+			where: { transactionCode }
 		});
 	}
 }

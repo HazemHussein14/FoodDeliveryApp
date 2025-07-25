@@ -1,6 +1,6 @@
-import HttpStatusCodes from 'http-status-codes';
-import ApplicationError from '../errors/application.error';
-import { UserRepository } from '../repositories/user.repository';
+import { StatusCodes } from 'http-status-codes';
+import { ApplicationError } from '../errors';
+import { UserRepository } from '../repositories';
 
 export class UserService {
 	private repo = new UserRepository();
@@ -15,7 +15,7 @@ export class UserService {
 
 	async getOne(id: number) {
 		const user = await this.repo.getUserById(id);
-		if (!user) throw new ApplicationError('User not found', HttpStatusCodes.NOT_FOUND);
+		if (!user) throw new ApplicationError('User not found', StatusCodes.NOT_FOUND);
 		return user;
 	}
 }

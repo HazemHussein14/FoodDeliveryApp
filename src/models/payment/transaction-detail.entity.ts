@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { AbstractEntity } from '../../abstract/base.entity';
+import { AbstractEntity } from '../base.entity';
 import { Transaction } from './transaction.entity';
 
 @Entity()
@@ -15,10 +15,7 @@ export class TransactionDetail extends AbstractEntity {
 	transaction!: Transaction;
 
 	@Column({ type: 'jsonb' })
-	detailKey!: any;
-
-	@Column({ type: 'jsonb' })
-	detailValue!: any;
+	details!: Record<string, any>;
 
 	@CreateDateColumn()
 	createdAt!: Date;

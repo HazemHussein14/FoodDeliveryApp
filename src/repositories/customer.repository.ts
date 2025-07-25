@@ -1,15 +1,18 @@
 import { AppDataSource } from '../config/data-source';
-import { Customer } from '../models/customer/customer.entity';
-import { Address } from '../models/customer/address.entity';
+import { Customer, Address, CustomerAddress, PaymentMethod } from '../models';
 import { Repository } from 'typeorm';
 
 export class CustomerRepository {
 	private customerRepo: Repository<Customer>;
 	private addressRepo: Repository<Address>;
+	private customerAddressRepo: Repository<CustomerAddress>;
+	private paymentMethodRepo: Repository<PaymentMethod>;
 
 	constructor() {
 		this.customerRepo = AppDataSource.getRepository(Customer);
 		this.addressRepo = AppDataSource.getRepository(Address);
+		this.customerAddressRepo = AppDataSource.getRepository(CustomerAddress);
+		this.paymentMethodRepo = AppDataSource.getRepository(PaymentMethod);
 	}
 
 	// Customer operations
@@ -27,8 +30,7 @@ export class CustomerRepository {
 
 	async getCustomerByUserId(userId: number): Promise<Customer | null> {
 		return await this.customerRepo.findOne({
-			where: { userId },
-			relations: ['user']
+			where: { userId }
 		});
 	}
 
@@ -43,46 +45,51 @@ export class CustomerRepository {
 		return await this.addressRepo.save(address);
 	}
 
-	async getAddressById(addressId: number): Promise<Address | null> {
-		return await this.addressRepo.findOne({
-			where: { addressId },
-			relations: ['user']
+	async getAddressById(addressId: number, customerId: number): Promise<CustomerAddress | null> {
+		return await this.customerAddressRepo.findOne({
+			where: { addressId, customerId },
+			relations: ['address']
 		});
 	}
 
-	async getAddressesByUserId(userId: number): Promise<Address[]> {
-		return await this.addressRepo.find({
-			where: { userId },
-			relations: ['user']
+	async getCustomerAddress(addressId: number, customerId: number): Promise<CustomerAddress | null> {
+		return await this.customerAddressRepo.findOne({
+			where: { addressId, customerId }
 		});
 	}
 
 	async updateAddress(addressId: number, data: Partial<Address>): Promise<Address | null> {
 		await this.addressRepo.update(addressId, data);
-		return await this.getAddressById(addressId);
+		return await this.addressRepo.findOne({ where: { addressId } });
 	}
 
 	async deleteAddress(addressId: number): Promise<void> {
+		await this.customerAddressRepo.delete({ addressId });
 		await this.addressRepo.delete(addressId);
 	}
 
-	// Helper methods
-	async getCustomerWithAddresses(customerId: number): Promise<Customer | null> {
-		const customer = await this.getCustomerById(customerId);
-		if (customer) {
-			const addresses = await this.getAddressesByUserId(customer.userId);
-			return { ...customer, addresses } as Customer & { addresses: Address[] };
+	async linkAddressToCustomer(customerId: number, addressId: number, isDefault: boolean): Promise<void> {
+		if (isDefault) {
+			await this.customerAddressRepo.update({ customerId }, { isDefault: false });
 		}
-		return null;
+		const customerAddress = this.customerAddressRepo.create({ customerId, addressId, isDefault });
+		await this.customerAddressRepo.save(customerAddress);
 	}
 
-	async searchCustomers(query: string): Promise<Customer[]> {
-		return await this.customerRepo
-			.createQueryBuilder('customer')
-			.leftJoinAndSelect('customer.user', 'user')
-			.where('user.firstName ILIKE :query', { query: `%${query}%` })
-			.orWhere('user.lastName ILIKE :query', { query: `%${query}%` })
-			.orWhere('user.email ILIKE :query', { query: `%${query}%` })
-			.getMany();
+	async getAllAddresses(customerId: number): Promise<any[]> {
+		return await this.customerAddressRepo.find({
+			where: { customerId },
+			relations: ['address']
+		});
+	}
+
+	async setDefaultAddress(customerId: number, addressId: number): Promise<void> {
+		await this.customerAddressRepo.update({ customerId }, { isDefault: false });
+		await this.customerAddressRepo.update({ customerId, addressId }, { isDefault: true });
+	}
+
+	// Payment method operations
+	async getPaymentMethodById(paymentMethodId: number): Promise<PaymentMethod | null> {
+		return await this.paymentMethodRepo.findOne({ where: { paymentMethodId } });
 	}
 }

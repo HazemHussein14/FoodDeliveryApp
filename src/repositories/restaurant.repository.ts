@@ -1,9 +1,9 @@
 import { AppDataSource } from '../config/data-source';
-import { Restaurant } from '../models/restaurant/restaurant.entity';
+import { Restaurant } from '../models';
 import { Repository } from 'typeorm';
 
 export class RestaurantRepository {
-	private restaurantRepo: Repository<Restaurant>;
+	private readonly restaurantRepo: Repository<Restaurant>;
 
 	constructor() {
 		this.restaurantRepo = AppDataSource.getRepository(Restaurant);
@@ -14,23 +14,33 @@ export class RestaurantRepository {
 		return await this.restaurantRepo.save(restaurant);
 	}
 
-	async getRestaurantById(restaurantId: number): Promise<Restaurant | null> {
-		return await this.restaurantRepo.findOne({
-			where: { restaurantId },
-			relations: ['user']
-		});
-	}
+	// async getRestaurantById(restaurantId: number): Promise<Restaurant | null> {
+	// 	return await this.restaurantRepo
+	// 		.createQueryBuilder('restaurant')
+	// 		.leftJoinAndSelect('restaurant.restaurantSetting', 'restaurantSetting')
+	// 		.leftJoinAndSelect('restaurant.menus', 'menus')
+	// 		.where('restaurant.restaurant_id = :restaurantId', { restaurantId })
+	// 		.getOne();
+	// }
 
 	async getRestaurantByUserId(userId: number): Promise<Restaurant | null> {
 		return await this.restaurantRepo.findOne({
 			where: { userId },
-			relations: ['user']
+			relations: ['restaurantSetting']
+		});
+	}
+
+	async getRestaurantById(restaurantId: number): Promise<Restaurant | null> {
+		return await this.restaurantRepo.findOne({
+			where: {
+				restaurantId
+			}
 		});
 	}
 
 	async getAllRestaurants(): Promise<Restaurant[]> {
 		return await this.restaurantRepo.find({
-			relations: ['user'],
+			relations: ['restaurantSetting'],
 			where: { isActive: true }
 		});
 	}
@@ -63,8 +73,7 @@ export class RestaurantRepository {
 
 	async getRestaurantsByStatus(status: 'open' | 'busy' | 'pause' | 'closed'): Promise<Restaurant[]> {
 		return await this.restaurantRepo.find({
-			where: { status, isActive: true },
-			relations: ['user']
+			where: { status, isActive: true }
 		});
 	}
 }

@@ -53,5 +53,10 @@ export const config = {
 		host: envVars.REDIS_HOST,
 		port: envVars.REDIS_PORT,
 		ttl: envVars.REDIS_DEFAULT_TTL
+	},
+	jwt: {
+		secret: envVars.JWT_SECRET,
+		accessTTL: envVars.JWT_ACCESS_EXPIRE_IN, // '1y'
+		refreshTTL: envVars.JWT_REFRESH_EXPIRE_IN
 	}
 };

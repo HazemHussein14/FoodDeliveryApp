@@ -1,18 +1,12 @@
-import {
-	Entity,
-	PrimaryGeneratedColumn,
-	Column,
-	CreateDateColumn,
-	UpdateDateColumn,
-	ManyToOne,
-	JoinColumn
-} from 'typeorm';
-import { AbstractEntity } from '../../abstract/base.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { AbstractEntity } from '../base.entity';
 import { OrderStatus } from './order-status.entity';
-import { Branch } from '../restaurant/branch.entity';
 import { Cart } from '../cart/cart.entity';
 import { Customer } from '../customer/customer.entity';
 import { Address } from '../customer/address.entity';
+import { OrderItem } from './order-item.entity';
+import { Restaurant } from '../restaurant/restaurant.entity';
+import { OrderDto } from '../../dto/order.dto';
 
 @Entity()
 export class Order extends AbstractEntity {
@@ -27,14 +21,11 @@ export class Order extends AbstractEntity {
 	orderStatus!: OrderStatus;
 
 	@Column()
-	branchId!: number;
+	restaurantId!: number;
 
-	@ManyToOne(() => Branch)
-	@JoinColumn({ name: 'branch_id' })
-	branch!: Branch;
-
-	@Column()
-	cartId!: number;
+	@ManyToOne(() => Restaurant, (restaurant) => restaurant.orders)
+	@JoinColumn({ name: 'restaurant_id' })
+	restaurant!: Restaurant;
 
 	@ManyToOne(() => Cart)
 	@JoinColumn({ name: 'cart_id' })
@@ -55,7 +46,7 @@ export class Order extends AbstractEntity {
 	deliveryAddress!: Address;
 
 	@Column({ type: 'text', default: '' })
-	customerInstructions!: string;
+	customerInstructions!: string | undefined;
 
 	@Column()
 	totalItems!: number;
@@ -75,28 +66,53 @@ export class Order extends AbstractEntity {
 	@Column({ type: 'decimal', precision: 10, scale: 2 })
 	totalAmount!: number;
 
-	@Column()
+	@Column({ type: 'timestamp' })
 	placedAt!: Date;
 
-	@Column()
-	deliveredAt!: Date;
+	// Made nullable since orders won't have delivery date when first created
+	@Column({ type: 'timestamp', nullable: true })
+	deliveredAt?: Date | null;
 
-	@Column({
-		type: 'enum',
-		enum: ['customer', 'restaurant', 'system', 'driver'],
-		nullable: true
-	})
-	cancelledBy?: 'customer' | 'restaurant' | 'system' | 'driver';
-
-	@Column({ type: 'text', default: '' })
-	cancellationReason!: string;
-
-	@Column({ nullable: true })
-	cancelledAt?: Date;
+	// Made nullable since not all orders will have cancellation info
+	@Column({ type: 'jsonb', nullable: true })
+	cancellationInfo?: Record<string, any> | null;
 
 	@CreateDateColumn()
 	createdAt!: Date;
 
 	@UpdateDateColumn()
 	updatedAt!: Date;
+
+	@OneToMany(() => OrderItem, (orderItem) => orderItem.order)
+	items!: OrderItem[];
+
+	@Column({ type: 'int', nullable: true })
+	customerRating?: number;
+
+	@Column({ type: 'text', nullable: true })
+	customerComment?: string;
+	/**
+	 * Build an Order object from an OrderDto.
+	 * @param createOrderDto an OrderDto
+	 * @returns an Order object
+	 */
+	static buildOrder(createOrderDto: OrderDto) {
+		const order = new Order();
+		order.customerId = createOrderDto.customerId;
+		order.restaurantId = createOrderDto.restaurantId;
+		order.deliveryAddressId = createOrderDto.deliveryAddressId;
+		order.customerInstructions = createOrderDto.customerInstructions;
+		order.totalItems = createOrderDto.totalItemsQty;
+		order.totalItemsAmount = createOrderDto.totalItemsAmount;
+		order.deliveryFees = createOrderDto.deliveryFees;
+		order.serviceFees = createOrderDto.serviceFees;
+		order.totalAmount = createOrderDto.totalAmount;
+		order.orderStatusId = createOrderDto.orderStatusId;
+		order.discount = createOrderDto.discount;
+		order.placedAt = createOrderDto.placedAt;
+		// deliveredAt and cancellationInfo will be null initially
+		order.deliveredAt = null;
+		order.cancellationInfo = null;
+		return order;
+	}
 }

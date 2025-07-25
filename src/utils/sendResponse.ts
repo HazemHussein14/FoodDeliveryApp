@@ -14,14 +14,8 @@ const getStatusFromCode = (statusCode: number) => {
 	return statusCode >= 200 && statusCode < 400 ? 'success' : 'error';
 };
 
-export function sendResponse<T>(
-	res: Response,
-	statusCode: number,
-	message: string,
-	data?: T,
-	extra?: Record<string, any>
-): Response<ApiResponse<T>> {
-	return res.status(statusCode).json({
+export function sendResponse<T>(res: Response, statusCode: number, message: string, data?: T, extra?: Record<string, any>): void {
+	res.status(statusCode).json({
 		requestTime: new Date().toISOString(),
 		status: getStatusFromCode(statusCode),
 		message,
@@ -41,6 +35,6 @@ export function sendPaginatedResponse<T>(
 		pageSize: number;
 		totalPages: number;
 	}
-): Response<ApiResponse<T>> {
-	return sendResponse(res, statusCode, message, data, pagination);
+): void {
+	sendResponse(res, statusCode, message, data, pagination);
 }

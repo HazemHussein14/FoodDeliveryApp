@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import Joi, { ObjectSchema, ValidationOptions } from 'joi';
-import ApplicationError from '../errors/application.error';
-import HttpStatusCodes from 'http-status-codes';
+import { ApplicationError } from '../errors';
+import { StatusCodes } from 'http-status-codes';
 
 declare global {
 	namespace Express {
@@ -50,7 +50,7 @@ export const validateRequest = (schemas: RequestSchemas) => {
 		}
 
 		if (validationErrors.length) {
-			return next(new ApplicationError('Validation error', HttpStatusCodes.BAD_REQUEST, true, validationErrors));
+			return next(new ApplicationError('Validation error', StatusCodes.BAD_REQUEST, true, validationErrors));
 		}
 
 		next();
