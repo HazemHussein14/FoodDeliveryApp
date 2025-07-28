@@ -2,94 +2,72 @@ import { inject, injectable } from 'inversify';
 import { TYPES } from '../config/types';
 import { SettingRepository } from '../repositories';
 import { Setting } from '../models';
-import { ApplicationError, ErrMessages } from '../errors';
-import { StatusCodes } from 'http-status-codes';
+import { SettingKey } from '../enums/setting.enum';
+import { redisService } from '../shared/redis';
 
 @injectable()
 export class SettingService {
+	private static readonly REDIS_PREFIX = 'setting';
+
 	constructor(
-		@inject(TYPES.SettingRepository) private readonly settingRepo: SettingRepository
+		@inject(TYPES.SettingRepository)
+		private readonly settingRepo: SettingRepository
 	) {}
 
 	/**
 	 * Gets a setting value by its key.
-	 *
-	 * @param key - The key of the setting to retrieve.
-	 * @returns The setting value if found, null otherwise.
 	 */
 	async getSettingValue(key: string): Promise<any> {
 		return await this.settingRepo.getSettingValue(key);
 	}
 
 	/**
-	 * Gets a setting value by its key with a default fallback.
-	 *
-	 * @param key - The key of the setting to retrieve.
-	 * @param defaultValue - The default value to return if setting is not found.
-	 * @returns The setting value if found, default value otherwise.
+	 * Sets a setting value and updates cache.
 	 */
-	async getSettingValueWithDefault(key: string, defaultValue: any): Promise<any> {
-		const value = await this.settingRepo.getSettingValue(key);
-		return value !== null ? value : defaultValue;
+	async set(key: SettingKey, value: any, description?: string): Promise<Setting> {
+		const sanitizedKey = SettingService.sanitizeKey(key);
+		const updated = await this.settingRepo.upsertByKey(sanitizedKey, value, description);
+		const cachedKey = redisService.generateKey(SettingService.REDIS_PREFIX, sanitizedKey);
+		await redisService.set(cachedKey, updated.value);
+		return updated;
 	}
 
 	/**
-	 * Gets a numeric setting value with a default fallback.
-	 *
-	 * @param key - The key of the setting to retrieve.
-	 * @param defaultValue - The default value to return if setting is not found.
-	 * @returns The numeric setting value if found, default value otherwise.
+	 * Deletes a setting and clears cache.
+	 */
+	async delete(key: SettingKey): Promise<void> {
+		const sanitizedKey = SettingService.sanitizeKey(key);
+		await this.settingRepo.delete(sanitizedKey);
+		const cachedKey = redisService.generateKey(SettingService.REDIS_PREFIX, sanitizedKey);
+		await redisService.del(cachedKey);
+	}
+
+	/**
+	 * Clears the settings cache.
+	 */
+	async clearCache(): Promise<void> {
+		await redisService.del(SettingService.REDIS_PREFIX);
+	}
+
+	/**
+	 * Gets a numeric setting value with a fallback default.
 	 */
 	async getNumericSettingValue(key: string, defaultValue: number): Promise<number> {
-		const value = await this.settingRepo.getSettingValue(key);
-		if (value === null || value === undefined) {
-			return defaultValue;
-		}
+		const value = await this.getSettingValue(key).catch(() => null);
+		if (value === null || value === undefined) return defaultValue;
 
-		const numericValue = Number(value);
-		if (isNaN(numericValue)) {
-			return defaultValue;
-		}
-
-		return numericValue;
+		const numeric = Number(value);
+		return isNaN(numeric) ? defaultValue : numeric;
 	}
 
 	/**
-	 * Creates or updates a setting.
-	 *
-	 * @param key - The key of the setting.
-	 * @param value - The value of the setting.
-	 * @returns The created or updated setting.
-	 */
-	async upsertSetting(key: string, value: any): Promise<Setting> {
-		return await this.settingRepo.upsertSetting(key, value);
-	}
-
-	/**
-	 * Gets all settings.
-	 *
-	 * @returns Array of all settings.
-	 */
-	async getAllSettings(): Promise<Setting[]> {
-		return await this.settingRepo.getAllSettings();
-	}
-
-	/**
-	 * Deletes a setting by its key.
-	 *
-	 * @param key - The key of the setting to delete.
-	 * @returns True if deleted, false if not found.
-	 */
-	async deleteSetting(key: string): Promise<boolean> {
-		return await this.settingRepo.deleteSetting(key);
-	}
-
-	/**
-	 * Gets the maximum number of menus allowed per restaurant.
-	 *
-	 * @returns The maximum number of menus per restaurant.
+	 * Convenience method for max menus per restaurant setting.
 	 */
 	async getMaxMenusPerRestaurant(): Promise<number> {
-		return await this.getNumericSettingValue('max_menus_per_restaurant', 3);
+		return this.getNumericSettingValue('MAX_MENUS_PER_RESTAURANT', 3);
+	}
+
+	private static sanitizeKey(key: SettingKey): string {
+		return key.trim().toUpperCase();
 	}
 }

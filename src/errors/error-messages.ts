@@ -21,6 +21,15 @@ export const ErrMessages = {
 		AccessDenied: 'Access Denied'
 	},
 
+	user: {
+		EmailAlreadyExists: 'Email Already Exists',
+		PhoneAlreadyExists: 'Phone Already Exists'
+	},
+
+	setting: {
+		SettingNotFound: 'Setting Not Found'
+	},
+
 	database: {
 		// Database Errors
 		DatabaseConnectionError: 'Database Connection Error',
@@ -70,7 +79,7 @@ export const ErrMessages = {
 			'Sorry restaurant cannot process your order right now, try again later or choose different one',
 		RestaurantNotOpen: 'Restaurant is not open',
 		NotRestaurantUser: 'You are not a restaurant user',
-		NoActiveRestaurant: 'There is no active restaurant',
+		NoActiveRestaurant: 'There is no active restaurant'
 	},
 
 	item: {

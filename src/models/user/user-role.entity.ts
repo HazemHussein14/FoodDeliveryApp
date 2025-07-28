@@ -12,9 +12,10 @@ export class UserRole extends AbstractEntity {
 	@Column()
 	userId!: number;
 
-	@ManyToOne(() => User, (user) => user.userRoles)
-	@JoinColumn({ name: 'user_id' })
-	user!: User;
+  // TODO: cuase problem
+	// @ManyToOne(() => User, (user) => user.userRoles)
+	// @JoinColumn({ name: 'user_id' })
+	// user!: User;
 
 	@Column()
 	roleId!: number;

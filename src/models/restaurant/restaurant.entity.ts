@@ -60,6 +60,9 @@ export class Restaurant extends AbstractEntity {
 	@UpdateDateColumn()
 	updatedAt!: Date;
 
+  users!: User[];
+
+
 	@OneToOne(() => User)
 	@JoinColumn({ name: 'user_id' })
 	user!: User;

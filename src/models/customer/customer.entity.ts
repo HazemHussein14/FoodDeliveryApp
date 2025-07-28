@@ -2,6 +2,12 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { AbstractEntity } from '../base.entity';
 import { User } from '../user/user.entity';
 
+
+export enum Gender {
+	male = 'male',
+	female = 'female'
+}
+
 @Entity()
 export class Customer extends AbstractEntity {
 	@PrimaryGeneratedColumn()
