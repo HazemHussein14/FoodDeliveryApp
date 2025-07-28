@@ -13,6 +13,8 @@ export class OrderController {
 	async placeOrder(req: Request, res: Response) {
 		const placeOrderDto: PlaceOrderDto = req.validated?.body;
 
+
+
 		const order = await this.orderService.placeOrder(placeOrderDto);
 		sendResponse(res, StatusCodes.CREATED, 'Order Placed Successfully', order);
 	}

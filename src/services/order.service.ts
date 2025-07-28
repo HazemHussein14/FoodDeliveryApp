@@ -7,12 +7,18 @@ import { Cart, CartItem, Order, OrderItem } from '../models';
 import logger from '../config/logger';
 import { CustomerService } from './customer.service';
 import { RestaurantService } from './restaurant.service';
-import { OrderDto, PlaceOrderDto, PlaceOrderResponse, UpdateOrderStatusDto } from '../dto/order.dto';
+import {
+	CustomerOrderData,
+	OrderDto,
+	PlaceOrderDto,
+	PlaceOrderResponse,
+	ProcessedCartItem,
+	UpdateOrderStatusDto
+} from '../dto/order.dto';
 import { Transactional } from 'typeorm-transactional';
-import { CartService } from './cart.service';
+import { MenuService } from './menu.service';
 import { PaymentService } from './payment.service';
 import NodeCache from 'node-cache';
-import { MenuService } from './menu.service';
 
 // Placeholder notification and analytics functions
 async function notifyDriver(driverId: number, payload: any) {
@@ -47,42 +53,45 @@ export class OrderService {
 		@inject(TYPES.CustomerService) private readonly customerService: CustomerService,
 		@inject(TYPES.RestaurantService) private readonly restaurantService: RestaurantService,
 		@inject(TYPES.PaymentService) private readonly paymentService: PaymentService,
-		@inject(TYPES.MenuRepository) private readonly menuRepo: MenuRepository,
-		@inject(TYPES.CartService) private readonly cartService: CartService
+		@inject(TYPES.MenuService) private readonly menuService: MenuService
 	) {}
 
 	@Transactional()
 	async placeOrder(placeOrderDto: PlaceOrderDto) {
 		// customer validations
-		logger.info(`Validating customer for order for customer ${placeOrderDto.userId}`);
-		const customer = await this.customerService.getCustomerByUserId(placeOrderDto.userId);
-		await this.customerService.validateDeliveryAddress(placeOrderDto.deliveryAddressId, customer.customerId);
+		logger.info(`Validating customer for order for customer ${placeOrderDto.customerId}`);
+		const customerCart = await this.customerService.getCustomerWithCartAndAddress(
+			placeOrderDto.customerId,
+			placeOrderDto.deliveryAddressId
+		);
 
 		// cart validations
-		logger.info(`Validating cart for order for customer ${customer.customerId}`);
-		const cart = await this.cartService.getCartByCustomerId(customer.customerId);
-		const { cartItems, restaurantId } = await this.validateCartForOrder(cart);
+		logger.info(`Validating cart for order for customer ${placeOrderDto.customerId}`);
+		this.validateCartIsNotEmptyAndItemsAvailable(customerCart);
+
+		const { cartItems, restaurantId, cartId } = this.extractCartDataFromCustomerData(customerCart);
 
 		// restaurant validations
-		logger.info(`Validating restaurant for order for customer ${customer.customerId}`);
-		await this.validateRestaurantForOrder(restaurantId);
+		logger.info(`Validating restaurant for order for customer ${placeOrderDto.customerId}`);
+		// 1 query
+		await this.validateRestaurantForOrder(restaurantId); // move to a middleware
 
 		// calculate order totals
-		logger.info(`Calculating order totals for customer ${customer.customerId}`);
+		logger.info(`Calculating order totals for customer ${placeOrderDto.customerId}`);
 		const orderTotals = await this.calculateOrderTotals(cartItems, restaurantId); // discount will be added later
 
 		// create pending transaction
-		logger.info(`Creating pending transaction for customer ${customer.customerId}`);
+		logger.info(`Creating pending transaction for customer ${placeOrderDto.customerId}`);
 		const transaction = await this.paymentService.createPendingTransaction({
-			customerId: customer.customerId,
+			customerId: placeOrderDto.customerId,
 			amount: orderTotals.totalAmount,
 			paymentMethodId: placeOrderDto.paymentMethodId
 		});
 
 		// create order
-		logger.info(`Creating order for customer ${customer.customerId}`);
+		logger.info(`Creating order for customer ${placeOrderDto.customerId}`);
 		const order = await this.createOrder({
-			customerId: customer.customerId,
+			customerId: placeOrderDto.customerId,
 			restaurantId: restaurantId,
 			deliveryAddressId: placeOrderDto.deliveryAddressId,
 			customerInstructions: placeOrderDto.customerInstructions,
@@ -93,11 +102,11 @@ export class OrderService {
 		});
 
 		// create order items
-		logger.info(`Creating order items for order ${order.orderId} for customer ${customer.customerId}`);
+		logger.info(`Creating order items for order ${order.orderId} for customer ${placeOrderDto.customerId}`);
 		await this.createOrderItems(order.orderId, cartItems);
 
 		// process payment
-		logger.info(`Processing payment for order ${order.orderId} for customer ${customer.customerId}`);
+		logger.info(`Processing payment for order ${order.orderId} for customer ${placeOrderDto.customerId}`);
 		const paymentResult = await this.paymentService.processPayment(transaction.transactionId, {
 			orderId: order.orderId,
 			amount: orderTotals.totalAmount
@@ -108,16 +117,16 @@ export class OrderService {
 		}
 
 		// update order status to confirmed
-		logger.info(`Updating order ${order.orderId} status to processing for customer ${customer.customerId}`);
+		logger.info(`Updating order ${order.orderId} status to processing for customer ${placeOrderDto.customerId}`);
 		await this.orderRepo.updateOrderStatus(order.orderId, 2); // processing status id
 
 		// clear cart
-		logger.info(`Clearing cart for customer ${customer.customerId}`);
+		logger.info(`Clearing cart for customer ${placeOrderDto.customerId}`);
 		// await this.cartService.clearCart(cart.cartId);
 
 		// log success and return response
 		// TODO: Send order confirmation email or notification
-		logger.info(`Order ${order.orderId} placed successfully for customer ${customer.customerId}`);
+		logger.info(`Order ${order.orderId} placed successfully for customer ${placeOrderDto.customerId}`);
 
 		return await this.buildOrderResponse(order.orderId);
 	}
@@ -453,29 +462,56 @@ export class OrderService {
 		}
 	}
 
-	private async validateCartForOrder(cart: Cart) {
-		// validate cart is not empty
-		const cartItems = cart.cartItems;
-		if (!cartItems || cartItems.length === 0) {
+	private validateCartIsNotEmptyAndItemsAvailable(customerData: CustomerOrderData[]) {
+		if (this.isCartEmpty(customerData)) {
 			throw new ApplicationError(ErrMessages.cart.CartIsEmpty, StatusCodes.BAD_REQUEST);
 		}
 
-		// validate all items belong to same restaurant
-		const restaurantId = cartItems[0].restaurantId;
-		const allItemsBelongToSameRestaurant = cartItems.every((item) => item.restaurantId === restaurantId);
-		// TODO: Add better error message (show which items do not belong to same restaurant)
-		if (!allItemsBelongToSameRestaurant) {
-			throw new ApplicationError(ErrMessages.cart.CartItemsDoesNotBelongToSameRestaurant, StatusCodes.BAD_REQUEST);
-		}
+		const { cartItems } = this.extractCartDataFromCustomerData(customerData);
 
-		// validate all items are available
-		const allItemsAreAvailable = cartItems.every((item) => item.item.isAvailable);
-		// TODO: Add better error message (show which items are not available)
-		if (!allItemsAreAvailable) {
-			throw new ApplicationError(ErrMessages.item.ItemNotAvailable, StatusCodes.BAD_REQUEST);
+		if (!this.isAllItemsAvailable(cartItems)) {
+			const unavailableItems = cartItems.filter((item) => !item.isAvailable);
+			const itemsNames = unavailableItems.map((item) => item.itemName).join(', ');
+			throw new ApplicationError(
+				`${ErrMessages.item.ItemNotAvailable}. Items ${itemsNames} are not available.`,
+				StatusCodes.BAD_REQUEST
+			);
 		}
+	}
 
-		return { cartItems, restaurantId };
+	private isCartEmpty(customerData: CustomerOrderData[]): boolean {
+		return customerData.length === 0;
+	}
+
+	private isAllItemsAvailable(cartItems: ProcessedCartItem[]): boolean {
+		const unavailableItems = cartItems.every((item) => item.isAvailable);
+		return unavailableItems;
+	}
+
+	// NEW: Helper method to extract cart data after validation
+	private extractCartDataFromCustomerData(customerData: CustomerOrderData[]): {
+		cartItems: ProcessedCartItem[];
+		restaurantId: number;
+		cartId: number;
+	} {
+		const cartItems: ProcessedCartItem[] = customerData.map((row) => {
+			return {
+				cartId: row.cart_id,
+				cartItemId: row.cart_item_id,
+				restaurantId: row.restaurant_id,
+				itemId: row.item_id,
+				itemName: row.item_name,
+				quantity: row.quantity,
+				price: row.price,
+				isAvailable: row.is_available
+			};
+		});
+
+		return {
+			cartItems,
+			restaurantId: cartItems[0].restaurantId,
+			cartId: cartItems[0].cartId
+		};
 	}
 
 	private async validateRestaurantForOrder(restaurantId: number) {
@@ -490,23 +526,18 @@ export class OrderService {
 		return await this.orderRepo.createOrder(order);
 	}
 
-	private async createOrderItems(orderId: number, cartItems: CartItem[]) {
+	private async createOrderItems(orderId: number, cartItems: ProcessedCartItem[]) {
 		const orderItems: OrderItem[] = [];
 		for (const cartItem of cartItems) {
 			// TODO: Move to menu service
-			const menuItem = await this.menuRepo.getMenuItemByItemAndRestaurant(cartItem.itemId, cartItem.restaurantId);
-
-			if (!menuItem) {
-				logger.error(`Item ${cartItem.itemId} does not exist in menu of restaurant ${cartItem.restaurantId}`);
-				throw new ApplicationError('Cannot create order now', StatusCodes.INTERNAL_SERVER_ERROR);
-			}
+			const menuItem = await this.menuService.getMenuItemByIdAndRestaurantId(cartItem.itemId, cartItem.restaurantId);
 
 			const orderItem = OrderItem.buildOrderItem({
 				orderId,
 				menuItemId: menuItem.menuItemId,
 				quantity: cartItem.quantity,
 				itemPrice: cartItem.price,
-				totalPrice: cartItem.totalPrice
+				totalPrice: cartItem.quantity * cartItem.price
 			});
 
 			orderItems.push(orderItem);
@@ -562,7 +593,7 @@ export class OrderService {
 		return (totalAmount * deliveryFeePercentage) / 100;
 	}
 
-	async calculateOrderTotals(cartItems: CartItem[], restaurantId: number, discountAmount: number = 0) {
+	async calculateOrderTotals(cartItems: ProcessedCartItem[], restaurantId: number, discountAmount: number = 0) {
 		const restaurant = await this.restaurantService.getRestaurantById(restaurantId);
 
 		if (!restaurant.restaurantSetting) {
@@ -576,7 +607,7 @@ export class OrderService {
 		let totalItemsQty = 0;
 
 		for (const item of cartItems) {
-			totalItemsAmount += item.calculateTotalPrice();
+			totalItemsAmount += item.quantity * item.price;
 			totalItemsQty += item.quantity;
 		}
 

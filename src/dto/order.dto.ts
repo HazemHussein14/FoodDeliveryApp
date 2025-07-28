@@ -1,9 +1,33 @@
 // Place order DTO
 export interface PlaceOrderDto {
-	userId: number; // from the auth middleware
+	customerId: number; // from the auth middleware
 	deliveryAddressId: number;
 	paymentMethodId: number;
 	customerInstructions?: string;
+}
+
+export interface CustomerOrderData {
+	customer_id: number;
+	address_id: number;
+	cart_id: number;
+	cart_item_id: number;
+	restaurant_id: number;
+	item_id: number;
+	item_name: string;
+	quantity: number;
+	price: number;
+	is_available: boolean;
+}
+
+export interface ProcessedCartItem {
+	cartId: number;
+	cartItemId: number;
+	restaurantId: number;
+	itemId: number;
+	itemName: string;
+	quantity: number;
+	price: number;
+	isAvailable: boolean;
 }
 
 export interface PlaceOrderResponse {

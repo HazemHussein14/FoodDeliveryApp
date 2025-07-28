@@ -23,7 +23,13 @@ const controller = container.get<OrderController>(TYPES.OrderController);
  *   description: Order management APIs
  */
 
-OrderRouter.post('/place', validateRequest({ body: placeOrderBodySchema }), controller.placeOrder.bind(controller));
+OrderRouter.post(
+	'/place',
+	// isAuthenticated,
+  // isCustomer,
+	validateRequest({ body: placeOrderBodySchema }),
+	controller.placeOrder.bind(controller)
+);
 
 // View customer's specific order
 OrderRouter.get(
@@ -41,7 +47,11 @@ OrderRouter.get(
 	controller.viewRestaurantOrderDetails.bind(controller)
 );
 
-OrderRouter.put('/:orderId/status', validateRequest({ body: updateOrderStatusBodySchema, params: updateOrderStatusParamsSchema }), controller.updateOrderStatus.bind(controller));
+OrderRouter.put(
+	'/:orderId/status',
+	validateRequest({ body: updateOrderStatusBodySchema, params: updateOrderStatusParamsSchema }),
+	controller.updateOrderStatus.bind(controller)
+);
 
 OrderRouter.put(
 	'/:orderId/cancel-by-customer',

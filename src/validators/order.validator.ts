@@ -7,7 +7,7 @@ export const orderIdSchema = Joi.object({
 });
 
 export const placeOrderBodySchema = Joi.object<PlaceOrderDto>({
-	userId: idSchema.label('User ID'),
+	customerId: idSchema.label('Customer ID'),
 	deliveryAddressId: idSchema.label('Delivery address ID'),
 	paymentMethodId: idSchema.label('Payment method ID'),
 	customerInstructions: Joi.string().allow('').max(1000).optional()

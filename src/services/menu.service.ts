@@ -13,6 +13,7 @@ import {
 	UpdateMenuRequestDTO
 } from '../dto/menu.dto';
 import { SettingService } from './setting.service';
+import logger from '../config/logger';
 
 @injectable()
 export class MenuService {
@@ -154,6 +155,17 @@ export class MenuService {
 	async searchForMenuItems(menuId: number, query: string) {
 		const items = await this.menuRepo.searchItems(menuId, query);
 		return items;
+	}
+
+	async getMenuItemByIdAndRestaurantId(itemId: number, restaurantId: number) {
+		const menuItem = await this.menuRepo.getMenuItemByItemAndRestaurant(itemId, restaurantId);
+
+		if (!menuItem) {
+			logger.error(`Item ${itemId} does not exist in menu of restaurant ${restaurantId}`);
+			throw new ApplicationError('Cannot create order now', StatusCodes.INTERNAL_SERVER_ERROR);
+		}
+
+		return menuItem;
 	}
 
 	// Helper Methods
