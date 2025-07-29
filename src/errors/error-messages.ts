@@ -18,7 +18,8 @@ export const ErrMessages = {
 		InvalidCredentials: 'Invalid Credentials',
 		TokenExpired: 'Token Expired',
 		TokenInvalid: 'Token Invalid',
-		AccessDenied: 'Access Denied'
+		AccessDenied: 'Access Denied',
+		forbidden: 'You do not have permission to access this resource.'
 	},
 
 	user: {
