@@ -159,7 +159,7 @@ export class AuthService {
 		await this.userService.checkIfEmailOrPhoneExist(dto.email, dto.phone);
 
 		// 2) Create user with user type = restaurant_user
-		const userType = (await this.userService.getUserTypeByName('restaurant_user')) as UserType;
+		const userType = (await this.userService.getUserTypeByName('restaurant')) as UserType;
 		const newUser = await this.userService.createRestaurantOwnerUser({ ...dto, userTypeId: userType.userTypeId });
 
 		// 3) Assign default restaurant_admin role to user

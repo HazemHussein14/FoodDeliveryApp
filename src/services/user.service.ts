@@ -55,8 +55,15 @@ export class UserService {
 		await this.userRepo.deactivateUser(userId, deactivationInfo);
 	}
 
+	// async getUserTypeByName(name: string) {
+	// 	return await this.userRepo.getUserTypeByName(name);
+	// }
+
 	async getUserTypeByName(name: string) {
-		return await this.userRepo.getUserTypeByName(name);
+		console.log('[DEBUG] Looking for user type:', name); // ✅ Debug log
+		const type = await this.userRepo.getUserTypeByName(name);
+		if (!type) console.warn('[WARN] userType not found:', name); // ✅ Warning if null
+		return type;
 	}
 
 	async ensureEmailUniqueness(email: string) {
