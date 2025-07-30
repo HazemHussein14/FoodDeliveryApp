@@ -1,7 +1,9 @@
+import { injectable } from 'inversify';
 import { AppDataSource } from '../config/data-source';
 import { Cart, CartItem } from '../models';
 import { Repository } from 'typeorm';
 
+@injectable()
 export class CartRepository {
 	private cartRepo: Repository<Cart>;
 	private cartItemRepo: Repository<CartItem>;

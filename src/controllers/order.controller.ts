@@ -1,11 +1,14 @@
+import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
 import { sendResponse } from '../utils/sendResponse';
 import { StatusCodes } from 'http-status-codes';
-import { OrderService } from '../services/order.service';
+import { TYPES } from '../config/types';
 import { PlaceOrderDto, UpdateOrderStatusDto } from '../dto/order.dto';
+import { OrderService } from '../services';
 
+@injectable()
 export class OrderController {
-	private orderService = new OrderService();
+	constructor(@inject(TYPES.OrderService) private readonly orderService: OrderService) {}
 
 	async placeOrder(req: Request, res: Response) {
 		const placeOrderDto: PlaceOrderDto = req.validated?.body;

@@ -1,3 +1,4 @@
+import { injectable } from 'inversify';
 import { AppDataSource } from '../config/data-source';
 import { Order, OrderItem, OrderStatus } from '../models';
 import { Repository } from 'typeorm';
@@ -18,6 +19,7 @@ interface CancelOrderData {
 	cancelledAt: Date;
 }
 
+@injectable()
 export class OrderRepository {
 	private orderRepo: Repository<Order>;
 	private orderItemRepo: Repository<OrderItem>;

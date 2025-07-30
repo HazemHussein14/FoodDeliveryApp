@@ -1,10 +1,15 @@
+import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
+import { TYPES } from '../config/types';
 import { sendResponse } from '../utils/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 import { CustomerService } from '../services';
 
+@injectable()
 export class CustomerController {
-	private customerService = new CustomerService();
+	constructor(
+		@inject(TYPES.CustomerService) private readonly customerService: CustomerService
+	) {}
 
 	async deactivte(request: Request, response: Response) {
 		const { customerId } = request.validated?.params;

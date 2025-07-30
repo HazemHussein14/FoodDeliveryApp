@@ -1,3 +1,5 @@
+import { inject, injectable } from 'inversify';
+import { TYPES } from '../config/types';
 import { StatusCodes } from 'http-status-codes';
 import { ErrMessages, ApplicationError } from '../errors';
 import { Cart, CartItem, Customer } from '../models';
@@ -7,10 +9,13 @@ import { CartAddItemDto, CartItemResponse, CartResponse } from '../dto/cart.dto'
 import { Transactional } from 'typeorm-transactional';
 import { RemoveCartItemDto } from '../dto/cart-item.dto';
 
+@injectable()
 export class CartService {
-	private cartRepo = new CartRepository();
-	private menuRepo = new MenuRepository();
-	private customerRepo = new CustomerRepository();
+	constructor(
+		@inject(TYPES.CartRepository) private readonly cartRepo: CartRepository,
+		@inject(TYPES.MenuRepository) private readonly menuRepo: MenuRepository,
+		@inject(TYPES.CustomerRepository) private readonly customerRepo: CustomerRepository
+	) {}
 
 	private async getCustomerByUserId(userId: number): Promise<Customer> {
 		const customer = await this.customerRepo.getCustomerByUserId(userId);

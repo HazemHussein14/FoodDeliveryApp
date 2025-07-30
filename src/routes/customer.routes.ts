@@ -15,9 +15,11 @@ import {
 	setDefaultAddressSchema,
 	setPreferredPaymentMethodSchema
 } from '../validators/customer.validator';
+import { TYPES } from '../config/types';
+import { container } from '../config/container';
 
 const customerRouter = Router();
-const customerController = new CustomerController();
+const customerController = container.get<CustomerController>(TYPES.CustomerController);
 
 /**
  * @swagger

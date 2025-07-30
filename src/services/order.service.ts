@@ -1,3 +1,5 @@
+import { inject, injectable } from 'inversify';
+import { TYPES } from '../config/types';
 import { MenuRepository, OrderRepository, RestaurantRepository } from '../repositories';
 import { ApplicationError, ErrMessages } from '../errors';
 import { StatusCodes } from 'http-status-codes';
@@ -10,6 +12,7 @@ import { Transactional } from 'typeorm-transactional';
 import { CartService } from './cart.service';
 import { PaymentService } from './payment.service';
 import NodeCache from 'node-cache';
+import { MenuService } from './menu.service';
 
 // Placeholder notification and analytics functions
 async function notifyDriver(driverId: number, payload: any) {
@@ -36,14 +39,17 @@ const VALID_REASONS = ['OUT_OF_INGREDIENTS', 'TOO_BUSY', 'RESTAURANT_CLOSED', 'T
 
 const orderSummaryCache = new NodeCache({ stdTTL: 300 }); // 5 min cache
 
+@injectable()
 export class OrderService {
-	private orderRepo = new OrderRepository();
-	private restaurantRepo = new RestaurantRepository();
-	private customerService = new CustomerService();
-	private restaurantService = new RestaurantService();
-	private cartService = new CartService();
-	private paymentService = new PaymentService();
-	private menuRepo = new MenuRepository();
+	constructor(
+		@inject(TYPES.OrderRepository) private readonly orderRepo: OrderRepository,
+		@inject(TYPES.RestaurantRepository) private readonly restaurantRepo: RestaurantRepository,
+		@inject(TYPES.CustomerService) private readonly customerService: CustomerService,
+		@inject(TYPES.RestaurantService) private readonly restaurantService: RestaurantService,
+		@inject(TYPES.PaymentService) private readonly paymentService: PaymentService,
+		@inject(TYPES.MenuRepository) private readonly menuRepo: MenuRepository,
+		@inject(TYPES.CartService) private readonly cartService: CartService
+	) {}
 
 	@Transactional()
 	async placeOrder(placeOrderDto: PlaceOrderDto) {
@@ -294,7 +300,10 @@ export class OrderService {
 		}
 
 		if (NON_CANCELLABLE_STATES.includes(order.orderStatus.statusName)) {
-			throw new ApplicationError(`Order cannot be cancelled in current state: ${order.orderStatus.statusName}`, StatusCodes.BAD_REQUEST);
+			throw new ApplicationError(
+				`Order cannot be cancelled in current state: ${order.orderStatus.statusName}`,
+				StatusCodes.BAD_REQUEST
+			);
 		}
 		if (!VALID_REASONS.includes(cancellationReason)) {
 			throw new ApplicationError('Invalid cancellation reason', StatusCodes.BAD_REQUEST);
@@ -615,7 +624,7 @@ export class OrderService {
 		return await this.orderRepo.hasActiveOrdersForMenu(menuId);
 	}
 
-  async hasActiveOrdersForMenuItem(menuId: number, menuItemId: number): Promise<boolean> {
-    return await this.orderRepo.hasActiveOrdersForMenuItem(menuId, menuItemId);
-  }
+	async hasActiveOrdersForMenuItem(menuId: number, menuItemId: number): Promise<boolean> {
+		return await this.orderRepo.hasActiveOrdersForMenuItem(menuId, menuItemId);
+	}
 }

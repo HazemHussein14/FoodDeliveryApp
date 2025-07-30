@@ -9,9 +9,11 @@ import {
 	searchMenuItemsQuerySchema,
 	removeMenuItemParamsSchema
 } from '../validators';
+import { container } from '../config/container';
+import { TYPES } from '../config/types';
 
 const MenuRouter = Router();
-const menuController = new MenuController();
+const menuController = container.get<MenuController>(TYPES.MenuController);
 
 MenuRouter.post(
 	'/',

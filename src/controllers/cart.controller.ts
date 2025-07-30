@@ -1,4 +1,6 @@
+import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
+import { TYPES } from '../config/types';
 import { sendResponse } from '../utils/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 import { CartService } from '../services/cart.service';
@@ -6,8 +8,11 @@ import { RemoveCartItemDto } from '../dto/cart-item.dto';
 import { AuthorizedUser } from '../middlewares/auth.middleware';
 import { ApplicationError } from '../errors';
 
+@injectable()
 export class CartController {
-	private cartService = new CartService();
+	constructor(
+		@inject(TYPES.CartService) private readonly cartService: CartService
+	) {}
 
 	async removeItem(req: Request, res: Response) {
 		const { cartItemId } = req.validated?.params;

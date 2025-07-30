@@ -1,10 +1,15 @@
+import { inject, injectable } from 'inversify';
+import { TYPES } from '../config/types';
 import { StatusCodes } from 'http-status-codes';
 import { ApplicationError, ErrMessages } from '../errors';
 import { RestaurantRepository } from '../repositories';
 import { Restaurant } from '../models';
 
+@injectable()
 export class RestaurantService {
-	private readonly restaurantRepo = new RestaurantRepository();
+	constructor(
+		@inject(TYPES.RestaurantRepository) private readonly restaurantRepo: RestaurantRepository
+	) {}
 
 	async getRestaurantByUserId(userId: number) {
 		const restaurant = await this.restaurantRepo.getRestaurantByUserId(userId);
