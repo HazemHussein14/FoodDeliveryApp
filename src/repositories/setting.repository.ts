@@ -1,7 +1,9 @@
+import { injectable } from 'inversify';
 import { AppDataSource } from '../config/data-source';
 import { Setting } from '../models';
 import { Repository } from 'typeorm';
 
+@injectable()
 export class SettingRepository {
 	private readonly settingRepo: Repository<Setting>;
 

@@ -1,3 +1,4 @@
+import { injectable } from 'inversify';
 import { StatusCodes } from 'http-status-codes';
 import { AppDataSource } from '../config/data-source';
 import logger from '../config/logger';
@@ -7,6 +8,7 @@ import { Transaction, TransactionDetail, PaymentMethod, TransactionStatus } from
 import { Repository } from 'typeorm';
 import { TransactionStatusEnum } from '../enums';
 
+@injectable()
 export class PaymentRepository {
 	private readonly transactionRepo: Repository<Transaction>;
 	private readonly transactionDetailRepo: Repository<TransactionDetail>;

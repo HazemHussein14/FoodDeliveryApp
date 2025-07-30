@@ -3,9 +3,11 @@ import { SettingController } from '../controllers';
 import { isAuthenticated } from '../middlewares/auth.middleware';
 import { validateRequest } from '../middlewares/validate-request.middleware';
 import { settingValidator } from '../validators';
+import { container } from '../config/container';
+import { TYPES } from '../config/types';
 
 const router = Router();
-const settingController = new SettingController();
+const settingController = container.get<SettingController>(TYPES.SettingController);
 
 router.use(isAuthenticated);
 

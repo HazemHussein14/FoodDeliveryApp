@@ -1,7 +1,9 @@
+import { injectable } from 'inversify';
 import { AppDataSource } from '../config/data-source';
 import { Customer, Address, CustomerAddress, PaymentMethod } from '../models';
 import { Repository } from 'typeorm';
 
+@injectable()
 export class CustomerRepository {
 	private customerRepo: Repository<Customer>;
 	private addressRepo: Repository<Address>;

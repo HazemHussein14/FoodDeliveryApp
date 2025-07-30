@@ -1,3 +1,5 @@
+import { inject, injectable } from 'inversify';
+import { TYPES } from '../config/types';
 import { CustomerRepository, OrderRepository, UserRepository } from '../repositories';
 import { StatusCodes } from 'http-status-codes';
 import { ErrMessages, ApplicationError } from '../errors';
@@ -5,10 +7,13 @@ import { Transactional } from 'typeorm-transactional';
 import { ViewOrderStatusResponseDto, OrderHistoryDto, AddAddressDto, AddressDto, UpdateAddressDto } from '../dto/customer.dto';
 import { AppDataSource } from '../config/data-source';
 
+@injectable()
 export class CustomerService {
-	private customerRepo = new CustomerRepository();
-	private orderRepo = new OrderRepository();
-	private userRepo = new UserRepository();
+	constructor(
+		@inject(TYPES.CustomerRepository) private readonly customerRepo: CustomerRepository,
+		@inject(TYPES.OrderRepository) private readonly orderRepo: OrderRepository,
+		@inject(TYPES.UserRepository) private readonly userRepo: UserRepository
+	) {}
 
 	async getCustomerByUserId(userId: number) {
 		const customer = await this.customerRepo.getCustomerByUserId(userId);

@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import { inject, injectable } from 'inversify';
+import { TYPES } from '../config/types';
 import { sendResponse } from '../utils/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 import {
@@ -11,8 +13,9 @@ import { MenuService } from '../services';
 import logger from '../config/logger';
 import { AuthorizedUser } from '../middlewares';
 
+@injectable()
 export class MenuController {
-	private readonly menuService = new MenuService();
+	constructor(@inject(TYPES.MenuService) private readonly menuService: MenuService) {}
 	async createMenu(req: Request, res: Response) {
 		const { actorId: restaurantId } = req.user as AuthorizedUser;
 		const createMenuRequest: CreateMenuRequestDTO = {

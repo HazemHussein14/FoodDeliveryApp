@@ -11,9 +11,11 @@ import {
 	addCartItemSchema
 } from '../validators/cart.validator';
 import { isAuthenticated } from '../middlewares/auth.middleware';
+import { container } from '../config/container';
+import { TYPES } from '../config/types';
 
 const CartRouter = Router();
-const controller = new CartController();
+const controller = container.get<CartController>(TYPES.CartController);
 
 // CartRouter.get('/view/:customerId', controller.viewCart.bind(controller));
 CartRouter.get('/view', isAuthenticated, controller.viewCart.bind(controller));

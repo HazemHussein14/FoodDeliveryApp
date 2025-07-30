@@ -1,10 +1,15 @@
+import { inject, injectable } from 'inversify';
+import { TYPES } from '../config/types';
 import { SettingRepository } from '../repositories';
 import { Setting } from '../models';
 import { ApplicationError, ErrMessages } from '../errors';
 import { StatusCodes } from 'http-status-codes';
 
+@injectable()
 export class SettingService {
-	private readonly settingRepo = new SettingRepository();
+	constructor(
+		@inject(TYPES.SettingRepository) private readonly settingRepo: SettingRepository
+	) {}
 
 	/**
 	 * Gets a setting value by its key.

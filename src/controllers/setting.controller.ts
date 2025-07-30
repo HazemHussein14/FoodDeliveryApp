@@ -2,9 +2,12 @@ import { Request, Response } from 'express';
 import { SettingService } from '../services';
 import { sendResponse } from '../utils/sendResponse';
 import { StatusCodes } from 'http-status-codes';
+import { inject, injectable } from 'inversify';
+import { TYPES } from '../config/types';
 
+@injectable()
 export class SettingController {
-	private readonly settingService = new SettingService();
+	constructor(@inject(TYPES.SettingService) private readonly settingService: SettingService) {}
 
 	/**
 	 * Gets all settings.

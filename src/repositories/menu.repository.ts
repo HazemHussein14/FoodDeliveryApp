@@ -1,7 +1,9 @@
+import { injectable } from 'inversify';
 import { AppDataSource } from '../config/data-source';
 import { Menu, MenuItem, Item } from '../models';
 import { In, Repository } from 'typeorm';
 
+@injectable()
 export class MenuRepository {
 	private readonly menuRepo: Repository<Menu>;
 	private readonly menuItemRepo: Repository<MenuItem>;

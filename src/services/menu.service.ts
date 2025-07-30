@@ -1,7 +1,9 @@
+import { inject, injectable } from 'inversify';
+import { TYPES } from '../config/types';
 import { StatusCodes } from 'http-status-codes';
 import { ErrMessages, ApplicationError } from '../errors';
 import { Transactional } from 'typeorm-transactional';
-import { MenuRepository } from '../repositories';
+import { MenuRepository, OrderRepository } from '../repositories';
 import { Menu, MenuItem } from '../models';
 import {
 	AddItemsToMenuRequestDTO,
@@ -10,13 +12,15 @@ import {
 	RemoveMenuItemRequestDTO,
 	UpdateMenuRequestDTO
 } from '../dto/menu.dto';
-import { OrderService } from './order.service';
 import { SettingService } from './setting.service';
 
+@injectable()
 export class MenuService {
-	private readonly menuRepo = new MenuRepository();
-	private readonly orderService = new OrderService();
-	private readonly settingService = new SettingService();
+	constructor(
+		@inject(TYPES.MenuRepository) private readonly menuRepo: MenuRepository,
+		@inject(TYPES.OrderRepository) private readonly orderRepo: OrderRepository,
+		@inject(TYPES.SettingService) private readonly settingService: SettingService
+	) {}
 
 	/**
 	 * Creates a new menu for a restaurant.
@@ -71,7 +75,7 @@ export class MenuService {
 		}
 
 		// Check if there are active orders for this menu item
-		const hasActiveOrders = await this.orderService.hasActiveOrdersForMenuItem(menuId, itemId);
+		const hasActiveOrders = await this.orderRepo.hasActiveOrdersForMenuItem(menuId, itemId);
 		if (hasActiveOrders) {
 			throw new ApplicationError(ErrMessages.menu.MenuItemHasActiveOrders, StatusCodes.BAD_REQUEST);
 		}
@@ -122,7 +126,7 @@ export class MenuService {
 		// Validate menu belongs to restaurant
 		const menu = await this.getMenuByIdAndRestaurantId(restaurantId, menuId);
 
-		const hasActiveOrders = await this.orderService.hasActiveOrdersForMenu(menu.menuId);
+		const hasActiveOrders = await this.orderRepo.hasActiveOrdersForMenu(menu.menuId);
 		if (hasActiveOrders) {
 			throw new ApplicationError(ErrMessages.menu.MenuHasActiveOrders, StatusCodes.BAD_REQUEST);
 		}

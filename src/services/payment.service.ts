@@ -1,10 +1,15 @@
+import { inject, injectable } from 'inversify';
+import { TYPES } from '../config/types';
 import { PaymentRepository } from '../repositories';
 import logger from '../config/logger';
 import { ProcessPaymentDto, TransactionDto } from '../dto';
 import { TransactionStatusEnum } from '../enums';
 
+@injectable()
 export class PaymentService {
-	private readonly paymentRepository = new PaymentRepository();
+	constructor(
+		@inject(TYPES.PaymentRepository) private readonly paymentRepository: PaymentRepository
+	) {}
 
 	async createPendingTransaction(data: { customerId: number; amount: number; paymentMethodId: number }) {
 		const transactionDto: TransactionDto = {
