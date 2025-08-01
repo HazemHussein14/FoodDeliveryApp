@@ -163,7 +163,7 @@ const menuSeedData: SeedData<Menu> = {
 	entity: Menu,
 	data: Array.from({ length: 5000 }).map((_, index) => ({
 		restaurantId: index + 1, // Link to restaurant (1:1 relationship)
-		menuTitle: faker.commerce.department(),
+		menuTitle: `${faker.commerce.department()} - ${index + 1}`, // Added index to ensure uniqueness
 		isActive: faker.datatype.boolean(0.9) // 90% active menus
 	}))
 };

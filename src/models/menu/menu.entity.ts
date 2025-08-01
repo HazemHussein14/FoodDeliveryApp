@@ -1,10 +1,21 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import {
+	Entity,
+	PrimaryGeneratedColumn,
+	Column,
+	CreateDateColumn,
+	UpdateDateColumn,
+	OneToMany,
+	ManyToOne,
+	JoinColumn,
+	Unique
+} from 'typeorm';
 import { AbstractEntity } from '../base.entity';
 import { MenuItem } from './menu-item.entity';
 import { Restaurant } from '../restaurant/restaurant.entity';
 import { CreateMenuRequestDTO } from '../../dto/menu.dto';
 
 @Entity()
+@Unique(['restaurantId', 'menuTitle'])
 export class Menu extends AbstractEntity {
 	@PrimaryGeneratedColumn()
 	menuId!: number;
@@ -12,7 +23,7 @@ export class Menu extends AbstractEntity {
 	@Column()
 	restaurantId!: number;
 
-	@Column({ type: 'varchar', length: 100, unique: true })
+	@Column({ type: 'varchar', length: 100 })
 	menuTitle!: string;
 
 	@Column({ default: false })
