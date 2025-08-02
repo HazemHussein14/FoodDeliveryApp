@@ -1,13 +1,17 @@
-export interface LoginDto {
-	email: string;
-	password: string;
-	role: string;
+export class LoginDto {
+	email!: string;
+	password!: string;
 }
 
-export interface RegisterDto {
-	name: string;
-	email: string;
-	password: string;
-	phone?: string;
-	userTypeId: number;
+export class RegisterDto {
+	name!: string;
+	email!: string;
+	password!: string;
+	phone!: string;
+}
+
+
+export class RegisterCustomerDto extends RegisterDto {
+	birthDate!: Date;
+	gender!: 'male' | 'female';
 }

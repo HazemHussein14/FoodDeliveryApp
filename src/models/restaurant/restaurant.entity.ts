@@ -14,6 +14,7 @@ export interface RestaurantUser {
 	addedAt: Date;
 	addedBy: number;
 }
+export type RestaurantRelations = 'chain' | 'user' | 'menu' | 'cartItems' | 'orders' | 'ratings' | 'cuisines' | 'menu.categories' | 'menu.categories.items' | 'users.restaurants';
 
 // Restaurant entity
 @Entity()
@@ -59,6 +60,9 @@ export class Restaurant extends AbstractEntity {
 
 	@UpdateDateColumn()
 	updatedAt!: Date;
+
+  users!: User[];
+
 
 	@OneToOne(() => User)
 	@JoinColumn({ name: 'user_id' })

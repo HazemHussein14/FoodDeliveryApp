@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import { AppDataSource } from '../config/data-source';
-import { Restaurant } from '../models';
+import { Restaurant, RestaurantRelations } from '../models';
 import { Repository } from 'typeorm';
 
 @injectable()
@@ -16,14 +16,13 @@ export class RestaurantRepository {
 		return await this.restaurantRepo.save(restaurant);
 	}
 
-	// async getRestaurantById(restaurantId: number): Promise<Restaurant | null> {
-	// 	return await this.restaurantRepo
-	// 		.createQueryBuilder('restaurant')
-	// 		.leftJoinAndSelect('restaurant.restaurantSetting', 'restaurantSetting')
-	// 		.leftJoinAndSelect('restaurant.menus', 'menus')
-	// 		.where('restaurant.restaurant_id = :restaurantId', { restaurantId })
-	// 		.getOne();
-	// }
+		async getRestaurantBy(filter: { restaurantId?: number; userId?: number; name?: string; relations?: RestaurantRelations[] }): Promise<Restaurant | null> {
+		const { relations, ...whereOptions } = filter;
+		return await this.restaurantRepo.findOne({
+			where: whereOptions,
+			relations: relations || []
+		});
+	}
 
 	async getRestaurantByUserId(userId: number): Promise<Restaurant | null> {
 		return await this.restaurantRepo.findOne({

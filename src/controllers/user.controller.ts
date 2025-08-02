@@ -2,13 +2,14 @@ import { Request, Response } from 'express';
 import { sendResponse } from '../utils/sendResponse';
 import HttpStatusCodes from 'http-status-codes';
 import { UserService } from '../services/user.service';
+import { CreateUserDto } from '../dto/user.dto';
 
 export class UserController {
 	private userService = new UserService();
 
 	async create(req: Request, res: Response) {
-		const { firstName, lastName, email } = req.validated?.body;
-		const user = await this.userService.createUser({ firstName, lastName, email });
+		const dto = req.validated?.body as CreateUserDto;
+		const user = await this.userService.createUser(dto);
 		sendResponse(res, HttpStatusCodes.OK, 'User created successfully', user);
 	}
 

@@ -159,6 +159,8 @@ const restaurantSeedData: SeedData<Restaurant> = {
 	}))
 };
 
+const generatedTitles = new Set<string>();
+
 const menuSeedData: SeedData<Menu> = {
 	entity: Menu,
 	data: Array.from({ length: 5000 }).map((_, index) => ({

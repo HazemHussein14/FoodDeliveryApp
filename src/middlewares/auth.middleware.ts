@@ -11,6 +11,7 @@ export interface AuthorizedUser {
 	roles: string[];
 	actorType: string; // e.g., 'customer', 'restaurant_user'
 	actorId: number; // ID of the actor (e.g., customer or restaurant user)
+	restaurantId?: number;
 }
 
 declare module 'express-serve-static-core' {
@@ -26,7 +27,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
 	if (!token) throw new ApplicationError('Token missing', StatusCodes.UNAUTHORIZED);
 
 	try {
-		const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload;
+		const decoded = jwt.verify(token as string, config.jwt.secret) as JwtPayload;
 		req.user = decoded as AuthorizedUser;
 		next();
 	} catch (err) {

@@ -16,6 +16,12 @@ export class Role extends AbstractEntity {
 	@UpdateDateColumn()
 	updatedAt!: Date;
 
+	// TODO:   // why where
+	/**
+  role entity
+  user type
+  user entity
+   */
 	@OneToMany(() => UserRole, (userRole) => userRole.role)
 	userRoles!: UserRole[];
 }

@@ -18,7 +18,17 @@ export const ErrMessages = {
 		InvalidCredentials: 'Invalid Credentials',
 		TokenExpired: 'Token Expired',
 		TokenInvalid: 'Token Invalid',
-		AccessDenied: 'Access Denied'
+		AccessDenied: 'Access Denied',
+		forbidden: 'You do not have permission to access this resource.'
+	},
+
+	user: {
+		EmailAlreadyExists: 'Email Already Exists',
+		PhoneAlreadyExists: 'Phone Already Exists'
+	},
+
+	setting: {
+		SettingNotFound: 'Setting Not Found'
 	},
 
 	database: {
@@ -70,7 +80,7 @@ export const ErrMessages = {
 			'Sorry restaurant cannot process your order right now, try again later or choose different one',
 		RestaurantNotOpen: 'Restaurant is not open',
 		NotRestaurantUser: 'You are not a restaurant user',
-		NoActiveRestaurant: 'There is no active restaurant',
+		NoActiveRestaurant: 'There is no active restaurant'
 	},
 
 	item: {

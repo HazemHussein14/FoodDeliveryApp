@@ -4,7 +4,7 @@ import { CustomerRepository, OrderRepository, UserRepository } from '../reposito
 import { StatusCodes } from 'http-status-codes';
 import { ErrMessages, ApplicationError } from '../errors';
 import { Transactional } from 'typeorm-transactional';
-import { ViewOrderStatusResponseDto, OrderHistoryDto, AddAddressDto, AddressDto, UpdateAddressDto } from '../dto/customer.dto';
+import { ViewOrderStatusResponseDto, OrderHistoryDto, AddAddressDto, AddressDto, UpdateAddressDto, CreateCustomerDto } from '../dto/customer.dto';
 import { AppDataSource } from '../config/data-source';
 
 @injectable()
@@ -49,7 +49,7 @@ export class CustomerService {
 	async getCustomerOrderStatus(customerId: number, orderId: number): Promise<ViewOrderStatusResponseDto> {
 		const results = await AppDataSource.query(
 			`
-			SELECT 
+			SELECT
 				cst.customer_id AS "customerId",
 				ord.order_id AS "orderId",
 				ord.updated_at AS "updatedAt",
@@ -131,7 +131,7 @@ export class CustomerService {
 			JOIN menu_item mi ON oi.menu_item_id = mi.menu_item_id
 			JOIN item i ON i.item_id = mi.item_id
 			WHERE o.customer_id = 2
-			GROUP BY 
+			GROUP BY
 				o.order_id,
 				os.status_name,
 				r.name,
@@ -195,8 +195,8 @@ export class CustomerService {
 			throw new ApplicationError(ErrMessages.customer.AddressNotFound, StatusCodes.NOT_FOUND);
 		}
 
-		const updatedAddress = await this.customerRepo.updateAddress(addressId, { 
-			addressLine1: addressDto.addressLine1, 
+		const updatedAddress = await this.customerRepo.updateAddress(addressId, {
+			addressLine1: addressDto.addressLine1,
 			addressLine2: addressDto.addressLine2,
 			city: addressDto.city });
 
@@ -300,5 +300,10 @@ export class CustomerService {
 		}
 
 		await this.customerRepo.updateCustomer(customerId, { preferredPaymentMethodId: paymentMethodId });
+	}
+
+  async createCustomer(dto: CreateCustomerDto) {
+		const customer = await this.customerRepo.createCustomer(dto);
+		return customer;
 	}
 }

@@ -1,3 +1,5 @@
+import { Gender } from "../models";
+
 export interface ViewOrderStatusResponseDto {
 	orderId: string;
 	status: {
@@ -53,4 +55,9 @@ export interface UpdateAddressDto {
 	addressLine2?: string;
 	city?: string;
 	isDefault?: boolean;
+}
+export class CreateCustomerDto {
+	userId!: number;
+	birthDate!: Date;
+	gender!: Gender;
 }

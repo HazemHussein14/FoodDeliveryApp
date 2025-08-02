@@ -1,9 +1,17 @@
 import Joi from 'joi';
 
 export const createUserBodySchema = Joi.object({
-	firstName: Joi.string().required().min(3).max(30),
-	lastName: Joi.string().required().min(3).max(30),
-	email: Joi.string().required().email()
+	name: Joi.string().required().min(3).max(30),
+	phone: Joi.string()
+		.required()
+		.pattern(/^\+?[1-9]\d{1,14}$/), // E.164 format
+	password: Joi.string()
+		.required()
+		.min(8)
+		.max(100)
+		.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/), // At least one uppercase, one lowercase, one digit, one special character
+	email: Joi.string().required().email(),
+	userTypeId: Joi.number().min(1).required()
 }).required();
 
 export const getUsersQuerySchema = Joi.object({

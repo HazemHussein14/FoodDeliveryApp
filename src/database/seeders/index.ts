@@ -139,9 +139,19 @@ export class SeedService {
 }
 
 async function runSeed() {
+	const envPath = resolve(join(process.cwd(), 'env', `${process.env.NODE_ENV}.env`));
+	console.log('[DEBUG] NODE_ENV =', process.env.NODE_ENV);
+	console.log('[DEBUG] Loading env from:', envPath);
+
 	const seeder = new SeedService();
+
 	if (!seeder.datasource.isInitialized) {
 		await seeder.datasource.initialize();
+		console.log('[DEBUG] Connected to DB:', seeder.datasource.options.database);
+		// Cast to PostgresConnectionOptions to access 'host' property safely
+		const pgOptions = seeder.datasource
+			.options as import('typeorm/driver/postgres/PostgresConnectionOptions').PostgresConnectionOptions;
+		console.log('[DEBUG] DB Host:', pgOptions.host);
 	}
 
 	console.log('🌱 Start Seeding database...');
