@@ -4,7 +4,7 @@ import { config } from './env';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import logger from './logger';
 
-//
+const isProduction = process.env.NODE_ENV?.trim().toLowerCase() === 'production';
 export const AppDataSource = new DataSource({
 	type: 'postgres',
 	host: config.database.host, // Replace with your DB host
@@ -14,9 +14,9 @@ export const AppDataSource = new DataSource({
 	database: config.database.name, // Replace with your DB name
 	synchronize: config.database.synchronize, // Auto-create tables (set to false in production)
 	logging: config.database.logging, // Enable logging for debugging (optional)
-	entities: ['src/models/**/*.ts'], // Path to your entity files
-	migrations: ['src/migrations/**/*.ts'], // Path to migration files
-	subscribers: ['src/subscribers/**/*.ts'], // Path to subscriber files
+	entities: isProduction ? ['dist/models/**/*.js'] : ['src/models/**/*.ts'], // Path to your entity files
+	migrations: isProduction ? ['dist/migrations/**/*.js'] : ['src/migrations/**/*.ts'], // Path to migration files
+	subscribers: isProduction ? ['dist/subscribers/**/*.js'] : ['src/subscribers/**/*.ts'], // Path to subscriber files
 	poolSize: 10, // Connection pool size (adjust based on your needs)
 	extra: {
 		connectionTimeoutMillis: 2000, // Timeout for acquiring a connection
