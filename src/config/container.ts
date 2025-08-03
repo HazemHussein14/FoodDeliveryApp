@@ -22,7 +22,10 @@ import { RestaurantService } from '../services/restaurant.service';
 import { SettingService } from '../services/setting.service';
 import { AuthService } from '../services/auth.service';
 import { PaymentService } from '../services/payment.service';
+import { RoleService } from '../services/role.service';
 import { JwtService } from '../shared/jwt';
+import { OtpService } from '../shared/otpService';
+import { SmsService } from '../shared/smsService';
 
 // Import controllers
 import { OrderController } from '../controllers/order.controller';
@@ -55,7 +58,10 @@ container.bind<SettingService>(TYPES.SettingService).to(SettingService);
 container.bind<AuthService>(TYPES.AuthService).to(AuthService);
 container.bind<PaymentService>(TYPES.PaymentService).to(PaymentService);
 container.bind<OrderService>(TYPES.OrderService).to(OrderService);
+container.bind<RoleService>(TYPES.RoleService).to(RoleService);
 container.bind<JwtService>(TYPES.JwtService).to(JwtService);
+container.bind<OtpService>(TYPES.OtpService).to(OtpService);
+container.bind<SmsService>(TYPES.SmsService).to(SmsService);
 
 // Bind controllers
 container.bind<OrderController>(TYPES.OrderController).to(OrderController);

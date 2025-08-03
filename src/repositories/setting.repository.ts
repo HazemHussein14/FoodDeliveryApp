@@ -12,6 +12,14 @@ export class SettingRepository {
 		this.settingRepo = AppDataSource.getRepository(Setting);
 	}
 
+	async getAllSettings(): Promise<Setting | null> {
+		return await this.settingRepo.findOne({
+			where: {
+				settingId: 1
+			}
+		});
+	}
+
 	async findByKey(key: string): Promise<any> {
 		return await this.settingRepo.findOne({ where: { key } });
 	}
@@ -38,7 +46,7 @@ export class SettingRepository {
 		await this.settingRepo.delete({ key });
 	}
 
-  	/**
+	/**
 	 * Gets a setting by its key.
 	 *
 	 * @param key - The key of the setting to retrieve.
@@ -48,7 +56,7 @@ export class SettingRepository {
 		return await this.settingRepo.findOne({ where: { key } });
 	}
 
-  	/**
+	/**
 	 * Gets a setting value by its key.
 	 *
 	 * @param key - The key of the setting to retrieve.

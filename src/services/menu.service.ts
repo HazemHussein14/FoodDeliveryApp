@@ -243,13 +243,13 @@ export class MenuService {
 	 * @throws ApplicationError if the restaurant has reached the maximum allowed number of menus.
 	 */
 	private async validateMenuCountAcrossRestaurant(restaurantId: number) {
-		const maxMenusPerRestaurant = await SettingService.getMaxMenusPerRestaurant();
+		const maxMenusPerRestaurant = await this.settingService.getMaxMenusPerRestaurant();
 		const restaurantMenus = await this.menuRepo.getAllRestaurantMenus(restaurantId);
 		if (restaurantMenus.length >= maxMenusPerRestaurant) {
 			throw new ApplicationError(ErrMessages.menu.RestaurantMenuLimitReached, StatusCodes.BAD_REQUEST);
 		}
 	}
-  
+
 	private buildMenuResponse(menu: Menu): MenuResponseDTO {
 		return {
 			menuId: menu.menuId,

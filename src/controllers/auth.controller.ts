@@ -3,9 +3,14 @@ import { AuthService } from '../services/auth.service';
 import { sendResponse } from '../utils/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 import { RegisterCustomerDto, RegisterDto } from '../dto/auth.dto';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../config/types';
 
+@injectable()
 export class AuthController {
-	private authService = new AuthService(); // Instantiate auth service
+	constructor(
+		@inject(TYPES.AuthService) private readonly authService: AuthService
+	) {}
 
 	// Handle user login
 	async login(req: Request, res: Response) {

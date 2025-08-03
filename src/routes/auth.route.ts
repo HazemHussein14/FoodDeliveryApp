@@ -11,10 +11,10 @@ import {
 	authRestaurantOwnerRegisterBodySchema
 } from '../validators/auth.validator';
 import { customRateLimiter } from '../config/ratelimiter';
+import { container } from '../config/container';
+import { TYPES } from '../config/types';
 
-// Instantiate the authentication controller
-const controller = new AuthController();
-
+const controller = container.get<AuthController>(TYPES.AuthController);
 // Login route with validation
 AuthRouter.post('/login', validateRequest({ body: authLoginBodySchema }), controller.login.bind(controller));
 

@@ -14,6 +14,10 @@ export class SettingService {
 		private readonly settingRepo: SettingRepository
 	) {}
 
+	async getAllSettings(): Promise<Setting | null> {
+		return await this.settingRepo.getAllSettings();
+	}
+
 	/**
 	 * Gets a setting value by its key.
 	 */

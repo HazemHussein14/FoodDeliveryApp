@@ -1,24 +1,29 @@
 import { UserService } from './user.service';
 import { config } from '../config/env';
 import { AuthorizedUser } from '../middlewares/auth.middleware';
-import { UserRepository } from '../repositories/user.repository';
 import { JwtService } from '../shared/jwt';
 import { StatusCodes } from 'http-status-codes';
 import { Transactional } from 'typeorm-transactional';
 import { CustomerService } from './customer.service';
 import { Gender, UserType } from '../models';
 import { OtpService } from '../shared/otpService';
-import { SmsService } from '../shared/smsService';
 import { RoleService } from './role.service';
 import { LoginDto, RegisterCustomerDto, RegisterDto } from '../dto/auth.dto';
 import { ApplicationError } from '../errors';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../config/types';
+import { SmsService } from '../shared/smsService';
 
+@injectable()
 export class AuthService {
-	private repo = new UserRepository();
-	private jwtService = new JwtService();
-	private userService = new UserService();
-	private customerService = new CustomerService();
-	private roleService: RoleService = new RoleService();
+	constructor(
+		@inject(TYPES.JwtService) private readonly jwtService: JwtService,
+		@inject(TYPES.UserService) private readonly userService: UserService,
+		@inject(TYPES.CustomerService) private readonly customerService: CustomerService,
+		@inject(TYPES.RoleService) private readonly roleService: RoleService,
+		@inject(TYPES.OtpService) private readonly otpService: OtpService,
+		@inject(TYPES.SmsService) private readonly smsService: SmsService
+	) {}
 
 	// Handle user login
 	async login(dto: LoginDto) {
@@ -122,34 +127,34 @@ export class AuthService {
 	async requestOtp(phone: string) {
 		await this.userService.getOneOrFailBy({ phone });
 
-		const otp = OtpService.generateOtp();
+		const otp = this.otpService.generateOtp();
 
-		await OtpService.saveOtp(phone, otp);
+		await this.otpService.saveOtp(phone, otp);
 
-		await SmsService.sendOtp(phone, otp);
+		await this.smsService.sendOtp(phone, otp);
 	}
 
 	// Verify submitted OTP and generate a short-lived reset token
 	async verifyOtp(phone: string, otp: string) {
-		const isValid = await OtpService.verifyOtp(phone, otp);
+		const isValid = await this.otpService.verifyOtp(phone, otp);
 		if (!isValid) throw new ApplicationError('Invalid OTP', StatusCodes.UNAUTHORIZED);
 
 		const resetToken = this.jwtService.sign({ phone }, { expiresIn: '5m' });
 
-		await OtpService.saveResetToken(phone, resetToken);
+		await this.otpService.saveResetToken(phone, resetToken);
 
 		return { resetToken };
 	}
 
 	// Reset user password after OTP verification
 	async resetPassword(phone: string, newPassword: string, resetToken: string) {
-		const valid = await OtpService.verifyResetToken(phone, resetToken);
+		const valid = await this.otpService.verifyResetToken(phone, resetToken);
 		if (!valid) throw new ApplicationError('Invalid or expired reset token', StatusCodes.UNAUTHORIZED);
 
 		const user = await this.userService.getOneOrFailBy({ phone });
 
 		await this.userService.updatePassword(user.userId, newPassword);
-		await OtpService.invalidateResetToken(phone);
+		await this.otpService.invalidateResetToken(phone);
 	}
 
 	// Register restaurant owner (with role assignment)

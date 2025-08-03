@@ -20,6 +20,9 @@ export const TYPES = {
 	AuthService: Symbol.for('AuthService'),
 	PaymentService: Symbol.for('PaymentService'),
 	JwtService: Symbol.for('JwtService'),
+	RoleService: Symbol.for('RoleService'),
+	OtpService: Symbol.for('OtpService'),
+	SmsService: Symbol.for('SmsService'),
 
 	// Repositories
 	OrderRepository: Symbol.for('OrderRepository'),
@@ -29,5 +32,6 @@ export const TYPES = {
 	CustomerRepository: Symbol.for('CustomerRepository'),
 	RestaurantRepository: Symbol.for('RestaurantRepository'),
 	SettingRepository: Symbol.for('SettingRepository'),
-	PaymentRepository: Symbol.for('PaymentRepository')
+	PaymentRepository: Symbol.for('PaymentRepository'),
+	RoleRepository: Symbol.for('RoleRepository')
 };

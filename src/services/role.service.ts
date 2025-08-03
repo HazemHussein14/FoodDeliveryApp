@@ -3,10 +3,16 @@ import { UserService } from "./user.service";
 import { ApplicationError } from "../errors";
 import { AppDataSource } from "../config/data-source";
 import { Role } from "../models";
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../config/types';
 
+@injectable()
 export class RoleService {
+	constructor(
+		@inject(TYPES.UserService) private readonly userService: UserService
+	) {}
+
 	private roleRepo: Repository<Role> = AppDataSource.getRepository(Role);
-	private userService: UserService = new UserService();
 
 	async createRole(name: string): Promise<Role> {
 		const existing = await this.roleRepo.findOne({ where: { name } });

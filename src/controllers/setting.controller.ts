@@ -13,7 +13,7 @@ export class SettingController {
 	 * Gets all settings.
 	 */
 	async getAllSettings(req: Request, res: Response) {
-		const settings = await SettingService.getAll();
+		const settings = await this.settingService.getAllSettings();
 		return sendResponse(res, StatusCodes.OK, 'Settings retrieved successfully', settings);
 	}
 
@@ -22,7 +22,7 @@ export class SettingController {
 	 */
 	async getSettingByKey(req: Request, res: Response) {
 		const { key } = req.params;
-		const value = await SettingService.get(key as any); // ideally cast to SettingKey enum
+		const value = await this.settingService.getSettingValue(key as any); // ideally cast to SettingKey enum
 
 		if (value === null) {
 			return sendResponse(res, StatusCodes.NOT_FOUND, 'Setting not found', null);
@@ -41,7 +41,7 @@ export class SettingController {
 			return sendResponse(res, StatusCodes.BAD_REQUEST, 'Key and value are required', null);
 		}
 
-		const setting = await SettingService.set(key as any, value); // cast to SettingKey if enum
+		const setting = await this.settingService.set(key as any, value); // cast to SettingKey if enum
 		return sendResponse(res, StatusCodes.OK, 'Setting updated successfully', setting);
 	}
 
@@ -50,13 +50,13 @@ export class SettingController {
 	 */
 	async deleteSetting(req: Request, res: Response) {
 		const { key } = req.params;
-		await SettingService.delete(key as any); // cast to SettingKey
+		await this.settingService.delete(key as any); // cast to SettingKey
 
 		return sendResponse(res, StatusCodes.OK, 'Setting deleted successfully', null);
 	}
 
 	async getMaxMenusPerRestaurant(req: Request, res: Response) {
-		const maxMenus = await SettingService.getMaxMenusPerRestaurant();
+		const maxMenus = await this.settingService.getMaxMenusPerRestaurant();
 		return sendResponse(res, StatusCodes.OK, 'Max menus per restaurant retrieved successfully', {
 			maxMenusPerRestaurant: maxMenus
 		});
