@@ -4,9 +4,6 @@ module.exports = {
     script: './dist/server.js', // or your entry point
     instances: 1, // Start with 1 for baseline, scale later
     exec_mode: 'fork',
-    env: {
-      NODE_ENV: 'development',
-    },
     env_production: {
       NODE_ENV: 'production',
     },

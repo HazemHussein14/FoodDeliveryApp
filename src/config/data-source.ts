@@ -4,7 +4,17 @@ import { config } from './env';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import logger from './logger';
 
+// Import all entities explicitly to avoid path resolution issues
+import * as entities from '../models';
+
 const isProduction = process.env.NODE_ENV?.trim().toLowerCase() === 'production';
+
+// Convert entities object to array - filter only actual entity classes
+const entityArray = Object.values(entities).filter(
+	(entity) =>
+		typeof entity === 'function' && entity.prototype && entity.prototype.constructor && entity.name !== 'DeactivatedBy' // Exclude enum types
+) as any[];
+
 export const AppDataSource = new DataSource({
 	type: 'postgres',
 	host: config.database.host, // Replace with your DB host
@@ -14,7 +24,7 @@ export const AppDataSource = new DataSource({
 	database: config.database.name, // Replace with your DB name
 	synchronize: config.database.synchronize, // Auto-create tables (set to false in production)
 	logging: config.database.logging, // Enable logging for debugging (optional)
-	entities: isProduction ? ['dist/models/**/*.js'] : ['src/models/**/*.ts'], // Path to your entity files
+	entities: entityArray, // Use explicit entity imports
 	migrations: isProduction ? ['dist/migrations/**/*.js'] : ['src/migrations/**/*.ts'], // Path to migration files
 	subscribers: isProduction ? ['dist/subscribers/**/*.js'] : ['src/subscribers/**/*.ts'], // Path to subscriber files
 	poolSize: 10, // Connection pool size (adjust based on your needs)
